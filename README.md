@@ -12,6 +12,45 @@ Unlike traditional dashboards that rely on manual data entry, this system is an 
 2. **Data Engineering (Python):** Background scripts clean the tabular data, validate numerical integrities, and format the output into clean JSON APIs.
 3. **Frontend Visualization (React):** A sleek, reactive UI that consumes the processed data to render high-fidelity charts and metrics instantly.
 
+```mermaid
+graph TD
+    %% Styling
+    classDef ai fill:#f3e8ff,stroke:#a855f7,stroke-width:2px,color:#6b21a8
+    classDef cloud fill:#e0f2fe,stroke:#0ea5e9,stroke-width:2px,color:#0369a1
+    classDef script fill:#fef9c3,stroke:#eab308,stroke-width:2px,color:#a16207
+    classDef ui fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#047857
+
+    %% Nodes
+    subgraph Ingestion["🤖 AI Data Ingestion"]
+        A["OpenClaw Agent<br/>(LLM RPA)"]:::ai
+        SRC1["WhatsApp/Telegram<br/>Images"]
+        SRC2["PDF Bank<br/>Statements"]
+        SRC1 --> A
+        SRC2 --> A
+    end
+
+    subgraph Storage["☁️ Cloud Database"]
+        DB[("Google Sheets<br/>(Serverless DB)")]:::cloud
+    end
+
+    subgraph Engineering["⚙️ Data Engineering"]
+        P1["validate.py<br/>(Data Integrity)"]:::script
+        P2["extract_data.py<br/>(JSON Serialization)"]:::script
+    end
+
+    subgraph Frontend["🎨 React Dashboard"]
+        UI["High-Fidelity UI<br/>(Vite + Tailwind)"]:::ui
+        CHART["Recharts<br/>(Linear Spline)"]:::ui
+        UI --- CHART
+    end
+
+    %% Flow
+    A -- "Real-time Update" --> DB
+    DB -. "Raw Export (.xlsx)" .-> P1
+    P1 -- "Clean Data" --> P2
+    P2 -- "Secure JSON Payload" --> UI
+```
+
 ## ✨ Demo Video
 
 ![Anonymized Demo](./public/demo.webp)
