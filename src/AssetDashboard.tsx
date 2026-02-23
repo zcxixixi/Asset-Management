@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer, YAxis, XAxis } from 'recharts';
-import { Eye, EyeOff } from 'lucide-react';
-import dashboardData from './data.json';
+import { Eye, EyeOff, Sparkles } from 'lucide-react';
+import dashboardDataRaw from './data.json';
+
+// Use a safe cast for JSON data
+const dashboardData = dashboardDataRaw as any;
 
 export default function AssetDashboard() {
   const [isPrivacyMode, setIsPrivacyMode] = useState(false);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('7d');
-
-
 
   // Filter chart data
   const filteredChartData = React.useMemo(() => {
@@ -111,6 +112,29 @@ export default function AssetDashboard() {
             </AreaChart>
           </ResponsiveContainer>
         </section>
+
+        {/* AI Insights Section */}
+        {dashboardData.insights && (
+          <section className="space-y-4">
+            <div className="flex items-center space-x-2 text-slate-500 text-sm font-semibold tracking-widest uppercase">
+              <Sparkles size={16} className="text-blue-500" />
+              <span>AI Market Insights</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {dashboardData.insights.map((insight: string, idx: number) => (
+                <motion.div 
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 + idx * 0.1 }}
+                  className="p-5 rounded-2xl bg-blue-50/50 border border-blue-100 text-sm text-slate-700 leading-relaxed shadow-sm"
+                >
+                  {insight}
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Asset Breakdown Cards */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
