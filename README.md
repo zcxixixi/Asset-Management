@@ -1,31 +1,44 @@
-# 📈 React Asset Dashboard
+# 📈 Agentic Asset Management System
 
-A modern, high-performance, and privacy-focused asset management dashboard built with React and Tailwind CSS. It visualizes personal finance data exported from Google Sheets, providing a sleek interface for tracking net worth, asset allocation, and historical performance.
+A highly autonomous, end-to-end asset management architecture that fuses Agentic AI (OpenClaw) data ingestion, Python-based data engineering, and a modern React UI.
 
-## ✨ Features
+This project aims to deliver a **stable, advanced, and comfortable-to-operate** financial tracking experience.
+
+## 🏗️ Architecture Flow
+
+Unlike traditional dashboards that rely on manual data entry, this system is an automated pipeline:
+
+1. **Agentic Data Ingestion (OpenClaw):** The Agent autonomously monitors, scrapes, and parses unstructured financial information (like screenshots or statements) and updates the core Google Sheets database in real-time.
+2. **Data Engineering (Python):** Background scripts clean the tabular data, validate numerical integrities, and format the output into clean JSON APIs.
+3. **Frontend Visualization (React):** A sleek, reactive UI that consumes the processed data to render high-fidelity charts and metrics instantly.
+
+## ✨ Demo Video
+
+![Anonymized Demo](./public/demo.webp)
+_(The data in this demo has been fully anonymized via our secure scalar engine, preserving accurate yield curves while hiding true net worth.)_
+
+## 🌟 Key Capabilities
 
 - **Realistic Linear Charting:** Uses `recharts` to render a highly accurate, un-smoothed historical Net Asset Value (NAV) curve, complete with an interactive X-axis timeline.
 - **Dynamic Time Ranges:** Zero-latency toggles to slice data across multiple horizons (**7D**, **30D**, and **ALL**) without reloading.
-- **Bone-Screen Privacy Mode:** A hardware-level secure UI toggle that masks all sensitive numerical data with an elegant `••••••` string replacement (avoiding readable CSS blur hacks), perfect for public viewing or screen sharing.
-- **Data Anonymization Engine:** Includes a Python secure-scalar script (`generate_demo_data.py`) that extracts real Google Sheets data and multiplies it by a random scalar. This generates a safe, realistic demo `.json` payload that preserves 100% accurate performance curves and percentages while completely obfuscating the underlying absolute wealth.
+- **Bone-Screen Privacy Mode:** A hardware-level secure UI toggle that masks all sensitive numerical data with an elegant `••••••` string replacement, perfect for public viewing or screen sharing.
+- **Data Anonymization Engine:** A specialized Python script (`generate_demo_data.py`) scales true wealth by a secret random factor, allowing you to share your UI iterations safely.
+
+## 🚀 Future Roadmap
+
+Our ultimate goal is to evolve this dashboard into a comprehensive personal wealth workstation:
+
+- **Stability & Precision:** Continuously perfect the current real-time data sync pipeline to ensure zero-downtime and 100% data fidelity.
+- **Advanced UX:** Create an even more comfortable and seamless user experience.
+- **Expanded Financial Tools:** Introduce lightweight utility modules (e.g., tax estimators, multi-currency conversion, portfolio rebalancing calculators) directly into the UI.
 
 ## 🛠️ Tech Stack
 
-- **Frontend Framework:** React 18, Vite
-- **Styling:** Tailwind CSS (utility-first, responsive design)
-- **Data Visualization:** Recharts (SVG-based reactive chart components)
-- **Animations:** Framer Motion (smooth entry transitions and micro-interactions)
-- **Icons:** Lucide-React
-- **Data Processing:** Python (Pandas) for data extraction and formatting from raw `.xlsx` exports.
+- **Agent Framework:** OpenClaw (LLM-driven RPA)
+- **Data Layer:** Python, Pandas, Google Sheets API
+- **Frontend:** React 18, Vite, Tailwind CSS, Recharts, Framer Motion
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js (v18+)
-- Python 3.9+ (if you wish to extract your own raw Excel data)
-
-### Installation
+## ⚙️ Getting Started
 
 1. Clone the repository:
 
@@ -34,36 +47,15 @@ A modern, high-performance, and privacy-focused asset management dashboard built
    cd Asset-Management
    ```
 
-2. Install JavaScript dependencies:
+2. Install dependencies:
 
    ```bash
    npm install
    ```
 
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
-   Navigate to `http://localhost:5173` to see the dashboard running locally over the anonymized mock data.
-
-### 📊 Injecting Your Own Data
-
-The dashboard consumes data from `src/data.json`. To use your own real-time Google Sheets tracking:
-
-1. Export your tracking sheet as `assets.xlsx` and place it in the `public/` directory.
-2. Run the extraction script (make sure `pandas` and `openpyxl` are installed):
-   ```bash
-   python3 src/extract_data.py
-   ```
-3. To generate highly secure demo data (scaled values but true trends) for safe sharing, run instead:
+3. Extract demo data and start the Vite development server:
    ```bash
    python3 src/generate_demo_data.py
+   npm run dev
    ```
-
-## 🔒 Security
-
-The project strictly `.gitignore`s the `public/assets.xlsx` file. Real asset data is never committed to version control. The included `data.json` provides a pre-scaled demo sample.
-
----
-
-_Designed for precision, built for privacy._
+   Navigate to `http://localhost:5173`.
