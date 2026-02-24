@@ -6,11 +6,11 @@
     },
     {
       "label": "Gold USD",
-      "value": "837.97"
+      "value": "838.08"
     },
     {
       "label": "US Stocks",
-      "value": "3,783.70"
+      "value": "3,220.54"
     }
   ],
   "holdings": [
@@ -18,13 +18,13 @@
       "symbol": "NVDA.US",
       "name": "NVIDIA Corp.",
       "qty": "0.73",
-      "value": "139.90"
+      "value": "141.22"
     },
     {
       "symbol": "SGOV.US",
       "name": "iShares 0-3 Month Treasury Bond ETF",
       "qty": "15.14",
-      "value": "1,522.93"
+      "value": "1,523.08"
     },
     {
       "symbol": "TSLA.US",
@@ -36,7 +36,7 @@
       "symbol": "QQQ.US",
       "name": "NASDAQ 100 ETF",
       "qty": "1.73",
-      "value": "1,040.51"
+      "value": "1,051.74"
     },
     {
       "symbol": "CASH",
@@ -48,11 +48,11 @@
       "symbol": "GOLD.CN",
       "name": "博时黄金ETF联接C(估算USD)",
       "qty": "8.9499",
-      "value": "838.03"
+      "value": "838.07"
     }
   ],
-  "total_balance": "5,193.40",
-  "last_updated": "2026-02-24 18:44:13",
+  "total_balance": "4,630.35",
+  "last_updated": "2026-02-24 21:48:21",
   "insights": [
     {
       "type": "neutral",
