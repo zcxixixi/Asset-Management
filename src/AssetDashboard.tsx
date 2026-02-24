@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AreaChart, Area, ResponsiveContainer, YAxis, XAxis, Tooltip } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, YAxis, XAxis } from 'recharts';
 import { Eye, EyeOff, Sparkles, ShieldCheck, LayoutDashboard, ListFilter, Activity, Fingerprint, Database } from 'lucide-react';
 import dashboardDataRaw from './data.json';
 
