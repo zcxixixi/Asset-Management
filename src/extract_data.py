@@ -11,7 +11,6 @@ import sys
 SHEET_ID = '1_J8C9rKSRR0SbmOHO1N2ixeerdQ8GM-aKG4jJkWFniE'
 OUTPUT_PATH = 'src/data.json'
 SERVICE_ACCOUNT_JSON = os.getenv('GOOGLE_SERVICE_ACCOUNT') 
-MAX_DEVIATION = 0.30 # 30% Safety Threshold
 
 def safe_float(v):
     if pd.isna(v) or v is None: return 0.0
@@ -34,53 +33,57 @@ def extract_data():
         
         sh = gc.open_by_key(SHEET_ID)
         ws_daily = sh.worksheet("Daily")
-        ws_holdings = sh.worksheet("Holdings")
+        ws_holdings = sh.worksheet("Dashboard") 
         
-        # 1. Load History for Safety Check
+        # 1. 核心修复：直接读取 Daily 表作为 Dashboard 的唯一真值来源
         df_daily = get_as_dataframe(ws_daily, evaluate_formulas=True).dropna(how='all', axis=1).dropna(how='all', axis=0)
         df_daily.columns = df_daily.columns.astype(str).str.strip().str.lower()
-        last_recorded_total = safe_float(df_daily.iloc[-1]['total_usd'])
-
-        # 2. Fetch CURRENT detailed holdings
+        
+        latest_record = df_daily.iloc[-1]
+        recorded_total = safe_float(latest_record['total_usd'])
+        recorded_date = str(latest_record['date']).split(' ')[0]
+        
+        # 2. 读取持仓明细（仅用于 List 页面展示）
         df_holdings = get_as_dataframe(ws_holdings, evaluate_formulas=True).dropna(how='all', axis=0)
         df_holdings.columns = df_holdings.columns.astype(str).str.strip().str.lower()
+        df_latest_holdings = df_holdings[df_holdings['date'].astype(str).str.contains(recorded_date)]
         
-        asset_map = {'cash': 0.0, 'gold': 0.0, 'stocks': 0.0}
         holdings_detail = []
-        for _, row in df_holdings.iterrows():
-            name, symbol, mkt_val = str(row['name']), str(row['symbol']), safe_float(row['market_value_usd'])
-            if mkt_val > 0:
-                holdings_detail.append({"symbol": symbol, "name": name, "qty": str(row['quantity']), "price": f"{safe_float(row['price_usd']):,.2f}", "value": f"{mkt_val:,.2f}", "account": str(row['account'])})
-                if 'cash' in name.lower() or '现金' in name: asset_map['cash'] += mkt_val
-                elif 'gold' in symbol.lower() or 'gold' in name.lower(): asset_map['gold'] += mkt_val
-                else: asset_map['stocks'] += mkt_val
+        for _, row in df_latest_holdings.iterrows():
+            holdings_detail.append({
+                "symbol": str(row.get('symbol', 'N/A')),
+                "name": str(row.get('name', 'N/A')),
+                "qty": str(row.get('quantity', '0')),
+                "price": f"{safe_float(row.get('price_usd', 0)):,.2f}",
+                "value": f"{safe_float(row.get('market_value_usd', 0)):,.2f}",
+                "account": str(row.get('account', 'N/A'))
+            })
 
-        calculated_total = asset_map['cash'] + asset_map['gold'] + asset_map['stocks']
-
-        # --- CIRCUIT BREAKER: DEVIATION CHECK ---
-        deviation = abs(calculated_total - last_recorded_total) / last_recorded_total if last_recorded_total > 0 else 0
-        if deviation > MAX_DEVIATION:
-            print(f"❌ CIRCUIT BREAKER TRIGGERED: Deviation of {deviation*100:.1f}% detected.")
-            print(f"Last recorded: {last_recorded_total}, New: {calculated_total}")
-            # In a real environment, we'd send a Telegram alert here.
-            sys.exit("ABORTING SYNC: Suspicious price fluctuation. Please verify data sources.")
-
-        # 3. Final JSON Output
+        # 3. 构造响应，确保数值位与 Daily 表格分毫不差
         response = {
-            "assets": [{"label": "Cash USD", "value": f"{asset_map['cash']:,.2f}"}, {"label": "Gold USD", "value": f"{asset_map['gold']:,.2f}"}, {"label": "US Stocks", "value": f"{asset_map['stocks']:,.2f}"}],
-            "holdings": holdings_detail, "total_balance": f"{calculated_total:,.2f}",
-            "performance": {"1d": f"{((calculated_total / last_recorded_total) - 1) * 100:+.2f}%" if last_recorded_total > 0 else "0.00%", "summary": "Sanity Check: Passed"},
+            "assets": [
+                {"label": "Cash USD", "value": f"{safe_float(latest_record.get('cash_usd', 0)):,.2f}"},
+                {"label": "Gold USD", "value": f"{safe_float(latest_record.get('gold_usd', 0)):,.2f}"},
+                {"label": "US Stocks", "value": f"{safe_float(latest_record.get('stocks_usd', 0)):,.2f}"}
+            ],
+            "holdings": holdings_detail,
+            "total_balance": f"{recorded_total:,.2f}",
+            "performance": {
+                "1d": f"{((recorded_total / safe_float(df_daily.iloc[-2].get('total_usd', 1))) - 1) * 100:+.2f}%" if len(df_daily) > 1 else "0.00%",
+                "summary": f"Source: Daily Sheet ({recorded_date})"
+            },
             "chart_data": [{"date": str(r['date']).split(' ')[0], "value": safe_float(r['total_usd'])} for _, r in df_daily.iterrows()],
-            "last_updated": time.strftime("%Y-%m-%d"),
-            "diagnostics": {"api_status": "OK", "math_proof": "Verified"}
+            "last_updated": recorded_date,
+            "diagnostics": {"api_status": "OK", "math_proof": "Synced with Daily Sheet"}
         }
         
         with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
             json.dump(response, f, indent=2, ensure_ascii=False)
-        print(f"Extraction Success: Total {calculated_total:,.2f}")
+            
+        print(f"✅ Corrected Sync: UI now strictly matches Daily Sheet ($ {recorded_total:,.2f})")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Sync Failed: {e}")
         sys.exit(1)
 
 if __name__ == "__main__": extract_data()

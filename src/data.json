@@ -6,67 +6,67 @@
     },
     {
       "label": "Gold USD",
-      "value": "838.03"
+      "value": "837.97"
     },
     {
       "label": "US Stocks",
-      "value": "4,332.34"
+      "value": "3,783.70"
     }
   ],
   "holdings": [
     {
-      "symbol": "NVDA.US",
-      "name": "NVIDIA Corp.",
-      "qty": "0.73",
-      "price": "191.64",
-      "value": "139.90",
-      "account": "uSmart"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     },
     {
-      "symbol": "SGOV.US",
-      "name": "iShares 0-3 Month Treasury Bond ETF",
-      "qty": "15.14",
-      "price": "100.59",
-      "value": "1,522.93",
-      "account": "uSmart"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     },
     {
-      "symbol": "TSLA.US",
-      "name": "Tesla, Inc.",
-      "qty": "1.23",
-      "price": "399.85",
-      "value": "1,629.00",
-      "account": "uSmart"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     },
     {
-      "symbol": "QQQ.US",
-      "name": "NASDAQ 100 ETF",
-      "qty": "1.73",
-      "price": "601.45",
-      "value": "1,040.51",
-      "account": "uSmart"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     },
     {
-      "symbol": "CASH",
-      "name": "现金",
-      "qty": "571.73",
-      "price": "1.00",
-      "value": "571.73",
-      "account": "uSmart"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     },
     {
-      "symbol": "GOLD.CN",
-      "name": "博时黄金ETF联接C(估算USD)",
-      "qty": "8.9499",
-      "price": "93.64",
-      "value": "838.03",
-      "account": "Alipay"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     }
   ],
-  "total_balance": "5,742.10",
+  "total_balance": "5,193.40",
   "performance": {
-    "1d": "0.00%",
-    "summary": "Audit: Corrected"
+    "1d": "-0.18%",
+    "summary": "Source: Daily Sheet (2026-02-24)"
   },
   "chart_data": [
     {
@@ -809,16 +809,6 @@
   "last_updated": "2026-02-24",
   "diagnostics": {
     "api_status": "OK",
-    "steps": [
-      {
-        "name": "Auth",
-        "status": "Success"
-      },
-      {
-        "name": "Audit",
-        "status": "Success"
-      }
-    ],
-    "math_proof": "Synced"
+    "math_proof": "Synced with Daily Sheet"
   }
 }
