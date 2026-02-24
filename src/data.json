@@ -1,84 +1,72 @@
 {
   "assets": [
     {
-      "label": "NVIDIA Corp.",
-      "value": "139.83"
-    },
-    {
-      "label": "iShares 0-3 Month Treasury Bond ETF",
-      "value": "1,522.93"
-    },
-    {
-      "label": "Tesla, Inc.",
-      "value": "491.79"
-    },
-    {
-      "label": "NASDAQ 100 ETF",
-      "value": "1,040.44"
-    },
-    {
-      "label": "现金",
+      "label": "Cash USD",
       "value": "571.73"
     },
     {
-      "label": "博时黄金ETF联接C(估算USD)",
+      "label": "Gold USD",
       "value": "1,410.13"
+    },
+    {
+      "label": "US Stocks",
+      "value": "3,195.00"
     }
   ],
   "holdings": [
     {
-      "symbol": "NVDA.US",
-      "name": "NVIDIA Corp.",
-      "qty": 0.73,
-      "price": "191.55",
-      "value": "139.83",
-      "account": "uSmart"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     },
     {
-      "symbol": "SGOV.US",
-      "name": "iShares 0-3 Month Treasury Bond ETF",
-      "qty": 15.14,
-      "price": "100.59",
-      "value": "1,522.93",
-      "account": "uSmart"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     },
     {
-      "symbol": "TSLA.US",
-      "name": "Tesla, Inc.",
-      "qty": 1.23,
-      "price": "399.83",
-      "value": "491.79",
-      "account": "uSmart"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     },
     {
-      "symbol": "QQQ.US",
-      "name": "NASDAQ 100 ETF",
-      "qty": 1.73,
-      "price": "601.41",
-      "value": "1,040.44",
-      "account": "uSmart"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     },
     {
-      "symbol": "CASH",
-      "name": "现金",
-      "qty": 571.73,
-      "price": "1.00",
-      "value": "571.73",
-      "account": "uSmart"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     },
     {
-      "symbol": "GOLD.CN",
-      "name": "博时黄金ETF联接C(估算USD)",
-      "qty": 1.0,
-      "price": "1,410.13",
-      "value": "1,410.13",
-      "account": "Alipay"
+      "symbol": "N/A",
+      "name": "N/A",
+      "qty": "0",
+      "price": "0.00",
+      "value": "0.00",
+      "account": "N/A"
     }
   ],
-  "total_balance": "5,176.85",
+  "total_balance": "5,176.86",
   "performance": {
-    "1d": "-0.00%",
-    "summary": "Guardian Sync Active"
+    "1d": "-0.50%",
+    "summary": "Recorded Snapshot: 2026-02-24"
   },
   "chart_data": [
     {
@@ -818,82 +806,57 @@
       "value": 5176.86
     }
   ],
-  "last_updated": "2026-02-24 09:14:45",
+  "last_updated": "2026-02-24",
   "insights": {
-    "session_id": "a5c62f7a-b191-4c20-8232-03ec18d39718",
-    "response": "I must proceed with the task. The `run_shell_command` is unavailable, and I can't access external news. The user's prompt provides the portfolio total but no news. Therefore, I'll generate two generic, Chinese-language financial insights based solely on the provided total of 5,176.85, formatted as a JSON list. The insights will be: \"Investment diversification can reduce risk\" and \"Regular portfolio review is recommended.\" I will now output this as JSON.\n[\n  \"投资组合多元化，有效分散风险。\",\n  \"定期审视投资组合，把握市场先机。\"\n]",
+    "session_id": "dc1c449c-b044-4314-9ce5-64acc337f36e",
+    "response": "分散投资是管理风险和实现长期增长的关键。耐心和长远的眼光往往胜过短期投机。",
     "stats": {
       "models": {
         "gemini-2.5-flash-lite": {
           "api": {
             "totalRequests": 1,
             "totalErrors": 0,
-            "totalLatencyMs": 2656
+            "totalLatencyMs": 2487
           },
           "tokens": {
-            "input": 650,
-            "prompt": 1497,
-            "candidates": 165,
-            "total": 2016,
+            "input": 645,
+            "prompt": 1492,
+            "candidates": 61,
+            "total": 1952,
             "cached": 847,
-            "thoughts": 354,
+            "thoughts": 399,
             "tool": 0
           }
         },
-        "gemini-2.5-pro": {
+        "gemini-2.5-flash": {
           "api": {
-            "totalRequests": 6,
+            "totalRequests": 1,
             "totalErrors": 0,
-            "totalLatencyMs": 32590
+            "totalLatencyMs": 2788
           },
           "tokens": {
-            "input": 23049,
-            "prompt": 63978,
-            "candidates": 765,
-            "total": 66486,
-            "cached": 40929,
-            "thoughts": 1743,
+            "input": 7621,
+            "prompt": 7621,
+            "candidates": 22,
+            "total": 7843,
+            "cached": 0,
+            "thoughts": 200,
             "tool": 0
           }
         }
       },
       "tools": {
-        "totalCalls": 5,
-        "totalSuccess": 3,
-        "totalFail": 2,
-        "totalDurationMs": 7,
+        "totalCalls": 0,
+        "totalSuccess": 0,
+        "totalFail": 0,
+        "totalDurationMs": 0,
         "totalDecisions": {
           "accept": 0,
           "reject": 0,
           "modify": 0,
-          "auto_accept": 3
+          "auto_accept": 0
         },
-        "byName": {
-          "run_shell_command": {
-            "count": 2,
-            "success": 0,
-            "fail": 2,
-            "durationMs": 0,
-            "decisions": {
-              "accept": 0,
-              "reject": 0,
-              "modify": 0,
-              "auto_accept": 0
-            }
-          },
-          "read_file": {
-            "count": 3,
-            "success": 3,
-            "fail": 0,
-            "durationMs": 7,
-            "decisions": {
-              "accept": 0,
-              "reject": 0,
-              "modify": 0,
-              "auto_accept": 3
-            }
-          }
-        }
+        "byName": {}
       },
       "files": {
         "totalLinesAdded": 0,
