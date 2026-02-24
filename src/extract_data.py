@@ -29,7 +29,7 @@ def get_market_insights(holdings_summary):
         {"type": "opportunity", "asset": "Gold", "text": "黄金价格波动中，建议保持防御性仓位。"}
     ]
     try:
-        prompt = f"Holdings: {holdings_summary}\nTask: 3 personalized investment insights in Chinese as a JSON list. Fields: type, asset, text."
+        prompt = f"Holdings: {holdings_summary}\nTask: 3 personalized insights in Chinese as a JSON list. IMPORTANT: Use English for the "type" field (warning, opportunity, neutral).. Fields: type, asset, text."
         raw_output = subprocess.check_output(["gemini", "--output-format", "json", prompt], text=True)
         data = json.loads(raw_output)
         inner_content = data.get('response', '')
