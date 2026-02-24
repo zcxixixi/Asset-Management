@@ -2,19 +2,19 @@
   "assets": [
     {
       "label": "NVIDIA Corp.",
-      "value": "139.77"
+      "value": "139.83"
     },
     {
       "label": "iShares 0-3 Month Treasury Bond ETF",
-      "value": "15.14"
+      "value": "1,522.93"
     },
     {
       "label": "Tesla, Inc.",
-      "value": "487.09"
+      "value": "491.79"
     },
     {
       "label": "NASDAQ 100 ETF",
-      "value": "1,041.08"
+      "value": "1,040.44"
     },
     {
       "label": "现金",
@@ -22,12 +22,12 @@
     },
     {
       "label": "博时黄金ETF联接C(估算USD)",
-      "value": "1.00"
+      "value": "1,410.13"
     }
   ],
-  "total_balance": "2,255.81",
+  "total_balance": "5,176.85",
   "performance": {
-    "1d": "-56.64%",
+    "1d": "-0.00%",
     "summary": "Real-time update active."
   },
   "chart_data": [
@@ -761,10 +761,14 @@
     },
     {
       "date": "2026-02-23",
-      "value": 2255.8148
+      "value": 5202.84
+    },
+    {
+      "date": "2026-02-24",
+      "value": 5176.8543
     }
   ],
-  "last_updated": "2026-02-23 18:46:10",
+  "last_updated": "2026-02-24 08:33:16",
   "insights": [
     "市场数据波动中，建议保持当前观察。",
     "AI 投顾模块正在同步实时新闻源。"
