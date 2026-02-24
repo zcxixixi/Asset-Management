@@ -1,0 +1,41 @@
+name: EOD Market Close Snapshot
+
+on:
+  schedule:
+    - cron: '5 21 * * 1-5' # 21:05 UTC = 05:05 AM Beijing (Tue-Sat), which is 4:05 PM ET (Mon-Fri)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install pandas gspread gspread-dataframe google-auth openpyxl
+
+      - name: Run EOD Snapshot
+        env:
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+        run: python src/extract_data.py --record
+
+      - name: Commit and Push JSON
+        run: |
+          git config --global user.name "Github Action"
+          git config --global user.email "action@github.com"
+          git add src/data.json
+          if git diff --staged --quiet; then
+            echo "No changes in data. Skipping push."
+          else
+            git commit -m "chore: eod snapshot sync [skip ci]"
+            git push
+          fi
