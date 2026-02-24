@@ -6,6 +6,7 @@ from gspread_dataframe import get_as_dataframe
 from google.oauth2.service_account import Credentials
 import time
 import subprocess
+import sys
 
 # --- CONFIGURATION ---
 SHEET_ID = '1_J8C9rKSRR0SbmOHO1N2ixeerdQ8GM-aKG4jJkWFniE'
@@ -44,11 +45,11 @@ def get_market_insights(holdings_summary):
         print(f"Warning: Insight generation failed: {e}")
         return ["市场数据波动中，建议保持当前观察。", "AI 投顾模块正在同步实时新闻源。"]
 
-def extract_data():
+def extract_data(record_daily=False):
     try:
         if SERVICE_ACCOUNT_JSON:
             creds_dict = json.loads(SERVICE_ACCOUNT_JSON)
-            creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/spreadsheets.readonly'])
+            creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/spreadsheets'])
             gc = gspread.authorize(creds)
         else:
             gc = gspread.service_account()
@@ -72,15 +73,21 @@ def extract_data():
         df_holdings = get_as_dataframe(ws_holdings, evaluate_formulas=True).dropna(how='all', axis=0)
         df_holdings.columns = df_holdings.columns.astype(str).str.strip().str.lower()
         
-        # Group by category (we can map symbols to labels)
         asset_cards = []
+        asset_map = {} # To support Daily record columns
         for _, row in df_holdings.iterrows():
             label = str(row['name'])
+            symbol = str(row['symbol'])
             val = safe_float(row['market_value_usd'])
             if val > 0:
                 asset_cards.append({"label": label, "value": f"{val:,.2f}"})
+                # Map specific assets to Daily columns
+                if 'cash' in label or '现金' in label: asset_map['cash'] = val
+                elif 'GOLD' in symbol: asset_map['gold'] = val
+                else: asset_map['stocks'] = asset_map.get('stocks', 0) + val
 
         # 4. Prepare Response
+        today_str = time.strftime("%Y-%m-%d")
         response = {
             "assets": asset_cards,
             "total_balance": f"{realtime_total:,.2f}",
@@ -92,21 +99,18 @@ def extract_data():
         # Chart Data
         for _, row in df_daily.iterrows():
             dt = str(row['date']).split(' ')[0]
-            val = safe_float(row['total_usd']) # Use Total_USD for chart
+            val = safe_float(row['total_usd'])
             if dt and dt != 'nan':
                 response["chart_data"].append({"date": dt, "value": val})
         
-        # Last point in chart should be the real-time value if it's today
-        today_str = time.strftime("%Y-%m-%d")
+        # Add today's live point
         if response["chart_data"] and response["chart_data"][-1]["date"] == today_str:
             response["chart_data"][-1]["value"] = realtime_total
         else:
             response["chart_data"].append({"date": today_str, "value": realtime_total})
 
-        # Performance (Using the last row of Daily vs Realtime)
+        # Performance
         last_recorded_total = safe_float(df_daily.iloc[-1]['total_usd'])
-        prev_recorded_total = safe_float(df_daily.iloc[-2]['total_usd']) if len(df_daily) > 1 else last_recorded_total
-        
         perf_1d = ((realtime_total / last_recorded_total) - 1) * 100 if last_recorded_total > 0 else 0
         response["performance"] = {
             "1d": f"{perf_1d:+.2f}%",
@@ -121,10 +125,34 @@ def extract_data():
             json.dump(response, f, indent=2, ensure_ascii=False)
             
         print(f"Guardian Sync Success: {OUTPUT_PATH}")
+
+        # 6. Optional: Record EOD Snapshot to Google Sheet
+        if record_daily:
+            # Check if today is already recorded
+            last_date_in_sheet = str(df_daily.iloc[-1]['date']).split(' ')[0]
+            if last_date_in_sheet == today_str:
+                print(f"Skipping record: {today_str} already exists in Daily sheet.")
+            else:
+                # [date, cash_usd, gold_usd, stocks_usd, total_usd, nav, note]
+                last_nav = safe_float(df_daily.iloc[-1]['nav'])
+                new_nav = last_nav * (realtime_total / last_recorded_total) if last_recorded_total > 0 else last_nav
+                
+                new_row = [
+                    today_str,
+                    round(asset_map.get('cash', 0), 2),
+                    round(asset_map.get('gold', 0), 2),
+                    round(asset_map.get('stocks', 0), 2),
+                    round(realtime_total, 2),
+                    round(new_nav, 3),
+                    "EOD_AUTO_SNAPSHOT"
+                ]
+                ws_daily.append_row(new_row, value_input_option='USER_ENTERED')
+                print(f"✅ EOD Snapshot recorded to Daily sheet: {new_row}")
         
     except Exception as e:
         print(f"❌ Guardian Sync Failed: {e}")
         exit(1)
 
 if __name__ == "__main__":
-    extract_data()
+    do_record = "--record" in sys.argv
+    extract_data(record_daily=do_record)
