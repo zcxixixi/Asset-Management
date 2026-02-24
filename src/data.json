@@ -78,7 +78,7 @@
   "total_balance": "5,176.85",
   "performance": {
     "1d": "-0.00%",
-    "summary": "Market Data: 2026-2-24 上午12:33:08"
+    "summary": "Guardian Sync Active"
   },
   "chart_data": [
     {
@@ -815,12 +815,12 @@
     },
     {
       "date": "2026-02-24",
-      "value": 5176.8543
+      "value": 5176.86
     }
   ],
-  "last_updated": "2026-02-24 08:36:17",
+  "last_updated": "2026-02-24 01:02:48",
   "insights": [
-    "市场数据波动中，建议保持当前观察。",
-    "AI 投顾模块正在同步实时新闻源。"
+    "市场数据同步中。",
+    "建议关注持仓动态。"
   ]
 }
