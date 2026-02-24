@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import random
+import os
 
 XLSX_PATH = '/Users/kaijimima1234/Desktop/dashboard-demo/public/assets.xlsx'
 OUTPUT_PATH = '/Users/kaijimima1234/Desktop/dashboard-demo/src/data.json'
@@ -15,12 +16,21 @@ def generate_demo_data():
             try: return float(str(v).replace(',', ''))
             except: return 1.0
 
-        # Apply a random multiplier to completely hide real wealth
-        # Let's say we multiply everything by 5.82 to look like a realistic portfolio
-        SCALAR = 5.82
+        # Scale down wealth by factor of 3 (1/3) as requested
+        SCALAR = 0.3333
 
         response = {"assets": [], "chart_data": []}
         
+        # Preserve existing insights from Planner Agent
+        if os.path.exists(OUTPUT_PATH):
+            try:
+                with open(OUTPUT_PATH, 'r') as f:
+                    existing = json.load(f)
+                    if "insights" in existing:
+                        response["insights"] = existing["insights"]
+            except Exception:
+                pass
+                
         response["assets"] = [
             {"label": "Cash USD", "value": f"{(safe_float(latest_row['cash_usd']) * SCALAR):,.2f}"},
             {"label": "US Stocks", "value": f"{(safe_float(latest_row['stocks_usd']) * SCALAR):,.2f}"},
