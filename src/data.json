@@ -10,7 +10,7 @@
     },
     {
       "label": "US Stocks",
-      "value": "3,195.15"
+      "value": "4,332.34"
     }
   ],
   "holdings": [
@@ -35,7 +35,7 @@
       "name": "Tesla, Inc.",
       "qty": "1.23",
       "price": "399.85",
-      "value": "491.82",
+      "value": "1,629.00",
       "account": "uSmart"
     },
     {
@@ -63,9 +63,9 @@
       "account": "Alipay"
     }
   ],
-  "total_balance": "4,604.91",
+  "total_balance": "5,742.10",
   "performance": {
-    "1d": "-11.33%",
+    "1d": "+10.57%",
     "summary": "Verified by Atomic Logic"
   },
   "chart_data": [
@@ -807,7 +807,7 @@
     },
     {
       "date": "2026-02-24",
-      "value": 4604.91452837462
+      "value": 5742.0990283746205
     }
   ],
   "last_updated": "2026-02-24",
@@ -827,28 +827,28 @@
         "status": "Success"
       }
     ],
-    "math_proof": "SUM(4,604.91) == PARTS. Gap: 0.00",
-    "latency_ms": 3746,
-    "last_run": "2026-02-24 11:57:38"
+    "math_proof": "SUM(5,742.10) == PARTS. Gap: 0.00",
+    "latency_ms": 3721,
+    "last_run": "2026-02-24 11:58:04"
   },
   "insights": {
-    "session_id": "cc3c2616-f6ee-4002-ac2e-a756d3e165b8",
-    "response": "当然，这是两条简短的见解：\n\n1.  投资组合总价值约为4605。\n2.  这是一个良好的开端，显示了稳定的资产积累。",
+    "session_id": "8d8383b5-5421-4cc6-b7da-58ce8f285e6f",
+    "response": "以下是两条简短的见解：\n\n1.  投资组合表现稳健，总价值约为5742.10。\n2.  持续的增长表明了积极的市场趋势。",
     "stats": {
       "models": {
         "gemini-2.5-flash-lite": {
           "api": {
             "totalRequests": 1,
             "totalErrors": 0,
-            "totalLatencyMs": 3084
+            "totalLatencyMs": 3210
           },
           "tokens": {
-            "input": 708,
-            "prompt": 1561,
-            "candidates": 82,
-            "total": 1996,
-            "cached": 853,
-            "thoughts": 353,
+            "input": 709,
+            "prompt": 1563,
+            "candidates": 76,
+            "total": 2001,
+            "cached": 854,
+            "thoughts": 362,
             "tool": 0
           }
         },
@@ -856,15 +856,15 @@
           "api": {
             "totalRequests": 1,
             "totalErrors": 0,
-            "totalLatencyMs": 11171
+            "totalLatencyMs": 5611
           },
           "tokens": {
-            "input": 7690,
-            "prompt": 7690,
-            "candidates": 35,
-            "total": 8512,
-            "cached": 0,
-            "thoughts": 787,
+            "input": 3613,
+            "prompt": 7692,
+            "candidates": 41,
+            "total": 7996,
+            "cached": 4079,
+            "thoughts": 263,
             "tool": 0
           }
         }
