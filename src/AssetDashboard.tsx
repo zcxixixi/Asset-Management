@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer, YAxis, XAxis } from 'recharts';
-import { Eye, EyeOff, Sparkles, ShieldCheck, LayoutDashboard, ListFilter, Activity, Fingerprint, Database } from 'lucide-react';
+import { Eye, EyeOff, Sparkles, ShieldCheck, LayoutDashboard, ListFilter, Activity, Fingerprint, Database, ChevronRight } from 'lucide-react';
 import dashboardDataRaw from './data.json';
 
 const dashboardData = dashboardDataRaw as any;
 
-export default function AssetDashboard() {
-  const [isPrivacyMode, setIsPrivacyMode] = useState(false);
+interface AssetDashboardProps {
+  onOpenAdvisor?: () => void;
+  isPrivacyMode: boolean;
+  setIsPrivacyMode: (val: boolean) => void;
+}
+
+export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPrivacyMode }: AssetDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'holdings' | 'diagnostics'>('overview');
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('30d');
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('7d');
 
   const filteredChartData = React.useMemo(() => {
     const data = dashboardData.chart_data;
@@ -21,8 +26,11 @@ export default function AssetDashboard() {
   const p = (val: string | number) => isPrivacyMode ? '••••' : val;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-blue-100">
-      <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-10">
+    <div className="min-h-screen bg-[#F8FAFC] relative text-slate-900 font-sans selection:bg-blue-100">
+      {/* Subtle Background Pattern for Frosted Glass Visibility */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-40 pointer-events-none"></div>
+
+      <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-12 relative z-10">
         
         {/* Header */}
         <header className="flex justify-between items-center">
@@ -179,6 +187,65 @@ export default function AssetDashboard() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* AI Insights & Robo-Advisor (Apple Interactive Widget Style) */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="group relative overflow-hidden rounded-3xl bg-white/80 backdrop-blur-3xl p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/50 hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] hover:border-slate-200/60 transition-all duration-300"
+        >
+          <div className="relative z-10 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
+                  <Sparkles className="text-slate-600 group-hover:text-blue-500 transition-colors" size={14} strokeWidth={2.5} />
+                </div>
+                <h2 className="text-slate-800 text-sm font-medium tracking-tight">
+                  OpenClaw Assistant
+                </h2>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="px-2.5 py-1 rounded-full bg-slate-100/80 text-slate-500 text-[10px] font-semibold tracking-widest border border-slate-200/50 uppercase">
+                  Just Updated
+                </span>
+                <a 
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); onOpenAdvisor && onOpenAdvisor(); }}
+                  className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-200 transition-colors cursor-pointer group-hover:bg-slate-100"
+                  aria-label="View Analysis"
+                >
+                  <ChevronRight size={14} className="text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all" strokeWidth={2.5} />
+                </a>
+              </div>
+            </div>
+            
+            <h3 className="text-2xl md:text-3xl text-slate-900 font-semibold tracking-tighter">
+              Rate Cut Expectations Rise
+            </h3>
+            
+            <p className="text-slate-500 leading-relaxed text-sm md:text-[15px] font-normal tracking-wide max-w-2xl">
+              The Federal Reserve strongly hints at upcoming rate cuts. Your <span className="text-slate-900 font-semibold underline decoration-slate-200 underline-offset-4 pointer-events-none">Gold USD</span> position ({isPrivacyMode ? '••••••' : dashboardData.assets.find((a: any) => a.label === 'Gold USD')?.value}) is expected to directly benefit as a hedge asset; we recommend continuing to hold. Prepare for potential sector rotation in the <span className="text-slate-900 font-semibold underline decoration-slate-200 underline-offset-4 pointer-events-none">US Stocks</span> portion ({isPrivacyMode ? '••••••' : dashboardData.assets.find((a: any) => a.label === 'US Stocks')?.value}) of your portfolio.
+            </p>
+
+            <div className="pt-6 flex items-center justify-between border-t border-slate-100 mt-8">
+              <a 
+                href="#" 
+                onClick={(e) => { e.preventDefault(); onOpenAdvisor && onOpenAdvisor(); }}
+                className="text-blue-600 text-sm font-medium hover:text-blue-700 hover:underline underline-offset-4 cursor-pointer"
+              >
+                View Analysis Details
+              </a>
+              <div className="flex items-center space-x-2 text-xs text-slate-400 font-medium tracking-wide">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-20"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                <span>Synced with Market</span>
+              </div>
+            </div>
+          </div>
+        </motion.section>
 
       </div>
     </div>
