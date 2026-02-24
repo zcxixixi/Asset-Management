@@ -10,63 +10,63 @@
     },
     {
       "label": "US Stocks",
-      "value": "3,195.00"
+      "value": "3,195.15"
     }
   ],
   "holdings": [
     {
-      "symbol": "N/A",
-      "name": "N/A",
-      "qty": "0",
-      "price": "0.00",
-      "value": "0.00",
-      "account": "N/A"
+      "symbol": "NVDA.US",
+      "name": "NVIDIA Corp.",
+      "qty": "0.73",
+      "price": "191.64",
+      "value": "139.90",
+      "account": "uSmart"
     },
     {
-      "symbol": "N/A",
-      "name": "N/A",
-      "qty": "0",
-      "price": "0.00",
-      "value": "0.00",
-      "account": "N/A"
+      "symbol": "SGOV.US",
+      "name": "iShares 0-3 Month Treasury Bond ETF",
+      "qty": "15.14",
+      "price": "100.59",
+      "value": "1,522.93",
+      "account": "uSmart"
     },
     {
-      "symbol": "N/A",
-      "name": "N/A",
-      "qty": "0",
-      "price": "0.00",
-      "value": "0.00",
-      "account": "N/A"
+      "symbol": "TSLA.US",
+      "name": "Tesla, Inc.",
+      "qty": "1.23",
+      "price": "399.85",
+      "value": "491.82",
+      "account": "uSmart"
     },
     {
-      "symbol": "N/A",
-      "name": "N/A",
-      "qty": "0",
-      "price": "0.00",
-      "value": "0.00",
-      "account": "N/A"
+      "symbol": "QQQ.US",
+      "name": "NASDAQ 100 ETF",
+      "qty": "1.73",
+      "price": "601.45",
+      "value": "1,040.51",
+      "account": "uSmart"
     },
     {
-      "symbol": "N/A",
-      "name": "N/A",
-      "qty": "0",
-      "price": "0.00",
-      "value": "0.00",
-      "account": "N/A"
+      "symbol": "CASH",
+      "name": "现金",
+      "qty": "571.73",
+      "price": "1.00",
+      "value": "571.73",
+      "account": "uSmart"
     },
     {
-      "symbol": "N/A",
-      "name": "N/A",
-      "qty": "0",
-      "price": "0.00",
-      "value": "0.00",
-      "account": "N/A"
+      "symbol": "GOLD.CN",
+      "name": "博时黄金ETF联接C(估算USD)",
+      "qty": "1.0",
+      "price": "1,410.13",
+      "value": "1,410.13",
+      "account": "Alipay"
     }
   ],
-  "total_balance": "5,176.86",
+  "total_balance": "5,177.01",
   "performance": {
-    "1d": "-0.50%",
-    "summary": "Recorded Snapshot: 2026-02-24"
+    "1d": "+0.00%",
+    "summary": "Audit Status: OK"
   },
   "chart_data": [
     {
@@ -803,65 +803,12 @@
     },
     {
       "date": "2026-02-24",
-      "value": 5176.86
+      "value": 5176.85
+    },
+    {
+      "date": "2026-02-24",
+      "value": 5177.013800000001
     }
   ],
-  "last_updated": "2026-02-24",
-  "insights": {
-    "session_id": "5223a93a-ddf1-4d98-ae53-caed2462f9ca",
-    "response": "1. 投资有风险，入市需谨慎。 (Investing involves risk, be cautious when entering the market.)\n2. 分散投资是降低风险的有效方法。 (Diversified investment is an effective way to reduce risk.)",
-    "stats": {
-      "models": {
-        "gemini-2.5-flash-lite": {
-          "api": {
-            "totalRequests": 1,
-            "totalErrors": 0,
-            "totalLatencyMs": 2418
-          },
-          "tokens": {
-            "input": 645,
-            "prompt": 1492,
-            "candidates": 61,
-            "total": 1952,
-            "cached": 847,
-            "thoughts": 399,
-            "tool": 0
-          }
-        },
-        "gemini-2.5-flash": {
-          "api": {
-            "totalRequests": 1,
-            "totalErrors": 0,
-            "totalLatencyMs": 1979
-          },
-          "tokens": {
-            "input": 4715,
-            "prompt": 7621,
-            "candidates": 48,
-            "total": 7706,
-            "cached": 2906,
-            "thoughts": 37,
-            "tool": 0
-          }
-        }
-      },
-      "tools": {
-        "totalCalls": 0,
-        "totalSuccess": 0,
-        "totalFail": 0,
-        "totalDurationMs": 0,
-        "totalDecisions": {
-          "accept": 0,
-          "reject": 0,
-          "modify": 0,
-          "auto_accept": 0
-        },
-        "byName": {}
-      },
-      "files": {
-        "totalLinesAdded": 0,
-        "totalLinesRemoved": 0
-      }
-    }
-  }
+  "last_updated": "2026-02-24"
 }

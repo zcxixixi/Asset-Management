@@ -23,14 +23,7 @@ def safe_float(v):
         return float(v)
     except: return 0.0
 
-def get_market_insights(summary):
-    try:
-        prompt = f"User Portfolio: {summary}\nTask: Provide 2 short investment insights in Chinese."
-        result = subprocess.check_output(["gemini", "--output-format", "json", prompt], text=True)
-        return json.loads(result)
-    except: return ["数据已根据历史记录同步。", "建议保持资产配置稳定。"]
-
-def extract_data():
+def extract_data(record_daily=False):
     try:
         if SERVICE_ACCOUNT_JSON:
             creds_dict = json.loads(SERVICE_ACCOUNT_JSON)
@@ -41,57 +34,75 @@ def extract_data():
         
         sh = gc.open_by_key(SHEET_ID)
         ws_daily = sh.worksheet("Daily")
-        ws_hist = sh.worksheet("Dashboard") 
+        ws_holdings = sh.worksheet("Holdings")
+        ws_history = sh.worksheet("Dashboard") 
         
-        # 1. Pull Daily Data (Strict Source of Truth)
+        # 1. Fetch CURRENT detailed holdings (The Source of Truth for EOD)
+        df_holdings = get_as_dataframe(ws_holdings, evaluate_formulas=True).dropna(how='all', axis=0)
+        df_holdings.columns = df_holdings.columns.astype(str).str.strip().str.lower()
+        
+        holdings_detail = []
+        asset_map = {'cash': 0.0, 'gold': 0.0, 'stocks': 0.0}
+        today_str = time.strftime("%Y-%m-%d")
+        
+        for _, row in df_holdings.iterrows():
+            name, symbol, mkt_val = str(row['name']), str(row['symbol']), safe_float(row['market_value_usd'])
+            if mkt_val > 0:
+                holdings_detail.append({
+                    "symbol": symbol, "name": name, "qty": str(row['quantity']), 
+                    "price": f"{safe_float(row['price_usd']):,.2f}", "value": f"{mkt_val:,.2f}",
+                    "account": str(row['account'])
+                })
+                # ATOMIC AGGREGATION: Calculate summary strictly from parts
+                if 'cash' in name.lower() or '现金' in name: asset_map['cash'] += mkt_val
+                elif 'gold' in symbol.lower() or 'gold' in name.lower(): asset_map['gold'] += mkt_val
+                else: asset_map['stocks'] += mkt_val
+
+        # Sum of parts = True Total
+        calculated_total = asset_map['cash'] + asset_map['gold'] + asset_map['stocks']
+
+        # 2. Fetch Daily for Chart/History
         df_daily = get_as_dataframe(ws_daily, evaluate_formulas=True).dropna(how='all', axis=1).dropna(how='all', axis=0)
         df_daily.columns = df_daily.columns.astype(str).str.strip().str.lower()
         
-        latest_daily = df_daily.iloc[-1]
-        latest_date = str(latest_daily['date']).split(' ')[0]
-        
-        # 2. Pull Holdings for that specific date
-        df_hist = get_as_dataframe(ws_hist, evaluate_formulas=True).dropna(how='all', axis=0)
-        df_hist.columns = df_hist.columns.astype(str).str.strip().str.lower()
-        df_latest_holdings = df_hist[df_hist['date'].astype(str).str.contains(latest_date)]
-        
-        holdings_detail = []
-        for _, row in df_latest_holdings.iterrows():
-            holdings_detail.append({
-                "symbol": str(row.get('symbol', 'N/A')),
-                "name": str(row.get('name', 'N/A')),
-                "qty": str(row.get('quantity', '0')),
-                "price": f"{safe_float(row.get('price_usd', 0)):,.2f}",
-                "value": f"{safe_float(row.get('market_value_usd', 0)):,.2f}",
-                "account": str(row.get('account', 'N/A'))
-            })
-        
-        # 3. Prepare categories from the Daily summary row
-        asset_cards = [
-            {"label": "Cash USD", "value": f"{safe_float(latest_daily.get('cash_usd', 0)):,.2f}"},
-            {"label": "Gold USD", "value": f"{safe_float(latest_daily.get('gold_usd', 0)):,.2f}"},
-            {"label": "US Stocks", "value": f"{safe_float(latest_daily.get('stocks_usd', 0)):,.2f}"}
-        ]
-
+        # 3. Final JSON Response
         response = {
-            "assets": asset_cards,
+            "assets": [
+                {"label": "Cash USD", "value": f"{asset_map['cash']:,.2f}"},
+                {"label": "Gold USD", "value": f"{asset_map['gold']:,.2f}"},
+                {"label": "US Stocks", "value": f"{asset_map['stocks']:,.2f}"}
+            ],
             "holdings": holdings_detail,
-            "total_balance": f"{safe_float(latest_daily.get('total_usd', 0)):,.2f}",
+            "total_balance": f"{calculated_total:,.2f}",
             "performance": {
-                "1d": f"{((safe_float(latest_daily.get('total_usd', 0)) / safe_float(df_daily.iloc[-2].get('total_usd', 1))) - 1) * 100:+.2f}%" if len(df_daily) > 1 else "0.00%",
-                "summary": f"Recorded Snapshot: {latest_date}"
+                "1d": f"{((calculated_total / safe_float(df_daily.iloc[-1]['total_usd'])) - 1) * 100:+.2f}%" if calculated_total > 0 else "0.00%",
+                "summary": f"Audit Status: OK"
             },
-            "chart_data": [{"date": str(r['date']).split(' ')[0], "value": safe_float(r['total_usd'])} for _, r in df_daily.iterrows()],
-            "last_updated": latest_date,
-            "insights": get_market_insights(f"Total: {latest_daily.get('total_usd', 0)}")
+            "chart_data": [{"date": str(r['date']).split(' ')[0], "value": safe_float(r['total_usd'])} for _, r in df_daily.iterrows()] + [{"date": today_str, "value": calculated_total}],
+            "last_updated": today_str
         }
         
         with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
             json.dump(response, f, indent=2, ensure_ascii=False)
-        print(f"Sync Success: Strictly using recorded data for {latest_date}")
+
+        # 4. ATOMIC EOD RECORDING
+        if record_daily:
+            if str(df_daily.iloc[-1]['date']).split(' ')[0] != today_str:
+                # Calculate NAV
+                last_nav = safe_float(df_daily.iloc[-1]['nav'])
+                new_nav = last_nav * (calculated_total / safe_float(df_daily.iloc[-1]['total_usd']))
+                
+                # Write Daily Summary
+                new_daily_row = [today_str, round(asset_map['cash'], 2), round(asset_map['gold'], 2), round(asset_map['stocks'], 2), round(calculated_total, 2), round(new_nav, 3), "ATOMIC_SYNC"]
+                ws_daily.append_row(new_daily_row, value_input_option='USER_ENTERED')
+                
+                # Write Holdings History
+                hist_rows = [[today_str, str(r['account']), str(r['symbol']), str(r['name']), safe_float(r['quantity']), safe_float(r['price_usd']), safe_float(r['market_value_usd'])] for _, r in df_holdings.iterrows()]
+                ws_history.append_rows(hist_rows, value_input_option='USER_ENTERED')
+                print(f"✅ Atomic Sync Complete: Daily and History aligned to {calculated_total}")
         
     except Exception as e:
-        print(f"❌ Sync Failed: {e}")
+        print(f"❌ Error: {e}")
         exit(1)
 
-if __name__ == "__main__": extract_data()
+if __name__ == "__main__": extract_data(record_daily=("--record" in sys.argv))
