@@ -16,8 +16,8 @@ def generate_demo_data():
             try: return float(str(v).replace(',', ''))
             except: return 1.0
 
-        # Scale down wealth by factor of 3 (1/3) as requested
-        SCALAR = 0.3333
+        # Scale down wealth further (1/10th of the previous 1/3 scale, so overall 1/30 scale)
+        SCALAR = 0.0333
 
         response = {"assets": [], "chart_data": []}
         
