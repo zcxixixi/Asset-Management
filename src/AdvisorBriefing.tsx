@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Sparkles, TrendingUp, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import dashboardData from './data.json';
