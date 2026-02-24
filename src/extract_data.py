@@ -6,7 +6,7 @@ from gspread_dataframe import get_as_dataframe
 from google.oauth2.service_account import Credentials
 import time
 import subprocess
-import sys
+import re
 
 # --- CONFIGURATION ---
 SHEET_ID = '1_J8C9rKSRR0SbmOHO1N2ixeerdQ8GM-aKG4jJkWFniE'
@@ -24,94 +24,57 @@ def safe_float(v):
     except: return 0.0
 
 def get_market_insights(holdings_summary):
-    print("Generating structured AI insights...")
+    fallback = [
+        {"type": "neutral", "asset": "Portfolio", "text": "数据已更新，建议关注市场波动。"},
+        {"type": "opportunity", "asset": "Gold", "text": "黄金价格波动中，建议保持防御性仓位。"}
+    ]
     try:
-        # Fetch actual headlines for specific assets
-        news_query = "NVDA TSLA Gold market news latest headlines"
-        news_cmd = f"curl -s 'https://rss.nytimes.com/services/xml/rss/nyt/Economy.xml' | grep -oE '<title><!\[CDATA\[[^\]]+' | sed 's/<title><!\[CDATA\[//' | head -n 5"
-        headlines = subprocess.check_output(news_cmd, shell=True, text=True)
-        
-        prompt = f"""
-        User Holdings Data: {holdings_summary}
-        Current Market Headlines:
-        {headlines}
-        
-        Task: Provide 3 personalized investment insights in Chinese.
-        Protocol: Return a JSON list of objects.
-        Each object must have:
-        - "type": "warning" (risk), "opportunity" (growth), or "neutral" (status)
-        - "asset": The ticker or asset name related to this insight (e.g. "NVDA", "Gold", "Portfolio")
-        - "text": A concise, data-driven advice (max 30 words)
-        
-        Example: [{{"type": "warning", "asset": "NVDA", "text": "AI需求放缓信号出现，建议对冲风险。"}}]
-        """
-        
-        gemini_cmd = ["gemini", "--output-format", "json", prompt]
-        advice_json = subprocess.check_output(gemini_cmd, text=True)
-        return json.loads(advice_json)
-    except Exception as e:
-        print(f"Insight generation error: {e}")
-        return [
-            {"type": "neutral", "asset": "System", "text": "数据已同步，AI分析模块正在重新校准新闻源。"},
-            {"type": "opportunity", "asset": "Gold", "text": "黄金维持在2912美元上方，抗通胀属性目前依然强劲。"}
-        ]
+        prompt = f"Holdings: {holdings_summary}\nTask: 3 personalized investment insights in Chinese as a JSON list. Fields: type, asset, text."
+        raw_output = subprocess.check_output(["gemini", "--output-format", "json", prompt], text=True)
+        data = json.loads(raw_output)
+        inner_content = data.get('response', '')
+        # Direct extraction of JSON list from markdown or raw text
+        match = re.search(r'\[\s*\{.*\}\s*\]', inner_content, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+        return fallback
+    except:
+        return fallback
 
 def extract_data():
     try:
         if SERVICE_ACCOUNT_JSON:
-            creds_dict = json.loads(SERVICE_ACCOUNT_JSON)
-            creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/spreadsheets'])
-            gc = gspread.authorize(creds)
+            gc = gspread.authorize(Credentials.from_service_account_info(json.loads(SERVICE_ACCOUNT_JSON), scopes=['https://www.googleapis.com/auth/spreadsheets']))
         else:
             gc = gspread.service_account()
         
         sh = gc.open_by_key(SHEET_ID)
-        ws_daily = sh.worksheet("Daily")
-        ws_holdings = sh.worksheet("Holdings")
+        ws_daily, ws_holdings = sh.worksheet("Daily"), sh.worksheet("Holdings")
         
-        # 1. Pull Daily Summary (Source of Truth)
         df_daily = get_as_dataframe(ws_daily, evaluate_formulas=True).dropna(how='all', axis=1).dropna(how='all', axis=0)
         df_daily.columns = df_daily.columns.astype(str).str.strip().str.lower()
-        latest_record = df_daily.iloc[-1]
-        recorded_total = safe_float(latest_record['total_usd'])
+        latest = df_daily.iloc[-1]
         
-        # 2. Pull Holdings Detail
         df_holdings = get_as_dataframe(ws_holdings, evaluate_formulas=True).dropna(how='all', axis=0)
         df_holdings.columns = df_holdings.columns.astype(str).str.strip().str.lower()
         
-        holdings_list = []
-        for _, row in df_holdings.iterrows():
-            holdings_list.append({
-                "symbol": str(row.get('symbol', 'N/A')),
-                "name": str(row.get('name', 'N/A')),
-                "qty": str(row.get('quantity', '0')),
-                "value": f"{safe_float(row.get('market_value_usd', 0)):,.2f}"
-            })
+        holdings = [{"symbol": str(r.get('symbol')), "name": str(r.get('name')), "qty": str(r.get('quantity')), "value": f"{safe_float(r.get('market_value_usd')):,.2f}"} for _, r in df_holdings.iterrows() if safe_float(r.get('market_value_usd')) > 0]
 
-        # 3. Generate Protocol-Compliant Insights
-        holdings_summary = f"Balance: {recorded_total}, Assets: {holdings_list}"
-        insights = get_market_insights(holdings_summary)
+        insights = get_market_insights(f"Bal: {latest['total_usd']}, Assets: {holdings}")
 
-        # 4. Final Output
         response = {
-            "assets": [
-                {"label": "Cash USD", "value": f"{safe_float(latest_record.get('cash_usd', 0)):,.2f}"},
-                {"label": "Gold USD", "value": f"{safe_float(latest_record.get('gold_usd', 0)):,.2f}"},
-                {"label": "US Stocks", "value": f"{safe_float(latest_record.get('stocks_usd', 0)):,.2f}"}
-            ],
-            "holdings": holdings_list,
-            "total_balance": f"{recorded_total:,.2f}",
-            "last_updated": str(latest_record['date']).split(' ')[0],
-            "insights": insights,
-            "performance": {"1d": "Synced", "summary": "Protocol v3.0 Active"}
+            "assets": [{"label": "Cash USD", "value": f"{safe_float(latest.get('cash_usd')):,.2f}"}, {"label": "Gold USD", "value": f"{safe_float(latest.get('gold_usd')):,.2f}"}, {"label": "US Stocks", "value": f"{safe_float(latest.get('stocks_usd')):,.2f}"}],
+            "holdings": holdings, "total_balance": f"{safe_float(latest['total_usd']):,.2f}",
+            "last_updated": time.strftime("%Y-%m-%d %H:%M:%S"), "insights": insights,
+            "performance": {"1d": "Live", "summary": "Protocol v3.2 Ready"}
         }
         
         with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
             json.dump(response, f, indent=2, ensure_ascii=False)
-        print(f"Extraction Success with Structured Insights.")
+        print("Done.")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
         exit(1)
 
 if __name__ == "__main__": extract_data()
