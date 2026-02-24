@@ -65,8 +65,8 @@
   ],
   "total_balance": "5,742.10",
   "performance": {
-    "1d": "+10.57%",
-    "summary": "Verified by Atomic Logic"
+    "1d": "0.00%",
+    "summary": "Audit: Corrected"
   },
   "chart_data": [
     {
@@ -804,10 +804,6 @@
     {
       "date": "2026-02-24",
       "value": 5193.4
-    },
-    {
-      "date": "2026-02-24",
-      "value": 5742.0990283746205
     }
   ],
   "last_updated": "2026-02-24",
@@ -819,73 +815,10 @@
         "status": "Success"
       },
       {
-        "name": "Fetch_Holdings",
-        "status": "Success"
-      },
-      {
-        "name": "Math_Audit",
+        "name": "Audit",
         "status": "Success"
       }
     ],
-    "math_proof": "SUM(5,742.10) == PARTS. Gap: 0.00",
-    "latency_ms": 3721,
-    "last_run": "2026-02-24 11:58:04"
-  },
-  "insights": {
-    "session_id": "8d8383b5-5421-4cc6-b7da-58ce8f285e6f",
-    "response": "以下是两条简短的见解：\n\n1.  投资组合表现稳健，总价值约为5742.10。\n2.  持续的增长表明了积极的市场趋势。",
-    "stats": {
-      "models": {
-        "gemini-2.5-flash-lite": {
-          "api": {
-            "totalRequests": 1,
-            "totalErrors": 0,
-            "totalLatencyMs": 3210
-          },
-          "tokens": {
-            "input": 709,
-            "prompt": 1563,
-            "candidates": 76,
-            "total": 2001,
-            "cached": 854,
-            "thoughts": 362,
-            "tool": 0
-          }
-        },
-        "gemini-2.5-pro": {
-          "api": {
-            "totalRequests": 1,
-            "totalErrors": 0,
-            "totalLatencyMs": 5611
-          },
-          "tokens": {
-            "input": 3613,
-            "prompt": 7692,
-            "candidates": 41,
-            "total": 7996,
-            "cached": 4079,
-            "thoughts": 263,
-            "tool": 0
-          }
-        }
-      },
-      "tools": {
-        "totalCalls": 0,
-        "totalSuccess": 0,
-        "totalFail": 0,
-        "totalDurationMs": 0,
-        "totalDecisions": {
-          "accept": 0,
-          "reject": 0,
-          "modify": 0,
-          "auto_accept": 0
-        },
-        "byName": {}
-      },
-      "files": {
-        "totalLinesAdded": 0,
-        "totalLinesRemoved": 0
-      }
-    }
+    "math_proof": "Synced"
   }
 }
