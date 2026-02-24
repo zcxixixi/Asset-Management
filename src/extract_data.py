@@ -18,7 +18,9 @@ def safe_float(v):
         return 0.0
     try:
         if isinstance(v, str):
-            return float(v.replace(',', '').replace('$', '').strip())
+            v = v.replace(',', '').replace('$', '').strip()
+            if not v: return 0.0
+            return float(v)
         return float(v)
     except:
         return 0.0
@@ -74,22 +76,41 @@ def extract_data(record_daily=False):
         df_holdings.columns = df_holdings.columns.astype(str).str.strip().str.lower()
         
         asset_cards = []
-        asset_map = {} # To support Daily record columns
+        holdings_detail = []
+        asset_map = {} 
+        
         for _, row in df_holdings.iterrows():
             label = str(row['name'])
             symbol = str(row['symbol'])
-            val = safe_float(row['market_value_usd'])
-            if val > 0:
-                asset_cards.append({"label": label, "value": f"{val:,.2f}"})
-                # Map specific assets to Daily columns
-                if 'cash' in label or '现金' in label: asset_map['cash'] = val
-                elif 'GOLD' in symbol: asset_map['gold'] = val
-                else: asset_map['stocks'] = asset_map.get('stocks', 0) + val
+            qty = safe_float(row['quantity'])
+            price = safe_float(row['price_usd'])
+            mkt_val = safe_float(row['market_value_usd'])
+            
+            if mkt_val > 0:
+                # For cards
+                if label not in [a['label'] for a in asset_cards]:
+                    asset_cards.append({"label": label, "value": f"{mkt_val:,.2f}"})
+                
+                # For detailed table
+                holdings_detail.append({
+                    "symbol": symbol,
+                    "name": label,
+                    "qty": qty,
+                    "price": f"{price:,.2f}",
+                    "value": f"{mkt_val:,.2f}",
+                    "account": str(row['account'])
+                })
+                
+                # Map for Daily record
+                if 'cash' in label.lower() or '现金' in label: asset_map['cash'] = asset_map.get('cash', 0) + mkt_val
+                elif 'gold' in symbol.lower() or 'gold' in label.lower(): asset_map['gold'] = asset_map.get('gold', 0) + mkt_val
+                else: asset_map['stocks'] = asset_map.get('stocks', 0) + mkt_val
 
         # 4. Prepare Response
         today_str = time.strftime("%Y-%m-%d")
         response = {
             "assets": asset_cards,
+            "holdings": holdings_detail,
             "total_balance": f"{realtime_total:,.2f}",
             "performance": {},
             "chart_data": [],
@@ -103,7 +124,6 @@ def extract_data(record_daily=False):
             if dt and dt != 'nan':
                 response["chart_data"].append({"date": dt, "value": val})
         
-        # Add today's live point
         if response["chart_data"] and response["chart_data"][-1]["date"] == today_str:
             response["chart_data"][-1]["value"] = realtime_total
         else:
@@ -114,7 +134,7 @@ def extract_data(record_daily=False):
         perf_1d = ((realtime_total / last_recorded_total) - 1) * 100 if last_recorded_total > 0 else 0
         response["performance"] = {
             "1d": f"{perf_1d:+.2f}%",
-            "summary": f"Real-time update active."
+            "summary": f"Market Data: {logic_dict.get('Last_Price_Sync', 'Real-time')}"
         }
         
         # 5. Insights
@@ -124,19 +144,16 @@ def extract_data(record_daily=False):
         with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
             json.dump(response, f, indent=2, ensure_ascii=False)
             
-        print(f"Guardian Sync Success: {OUTPUT_PATH}")
+        print(f"Extraction Success with Holdings Detail: {OUTPUT_PATH}")
 
-        # 6. Optional: Record EOD Snapshot to Google Sheet
+        # 6. Optional: Record EOD Snapshot
         if record_daily:
-            # Check if today is already recorded
             last_date_in_sheet = str(df_daily.iloc[-1]['date']).split(' ')[0]
             if last_date_in_sheet == today_str:
-                print(f"Skipping record: {today_str} already exists in Daily sheet.")
+                print(f"Skipping record: {today_str} already exists.")
             else:
-                # [date, cash_usd, gold_usd, stocks_usd, total_usd, nav, note]
                 last_nav = safe_float(df_daily.iloc[-1]['nav'])
                 new_nav = last_nav * (realtime_total / last_recorded_total) if last_recorded_total > 0 else last_nav
-                
                 new_row = [
                     today_str,
                     round(asset_map.get('cash', 0), 2),
@@ -147,10 +164,10 @@ def extract_data(record_daily=False):
                     "EOD_AUTO_SNAPSHOT"
                 ]
                 ws_daily.append_row(new_row, value_input_option='USER_ENTERED')
-                print(f"✅ EOD Snapshot recorded to Daily sheet: {new_row}")
+                print(f"✅ EOD Snapshot recorded: {new_row}")
         
     except Exception as e:
-        print(f"❌ Guardian Sync Failed: {e}")
+        print(f"❌ Extraction Failed: {e}")
         exit(1)
 
 if __name__ == "__main__":
