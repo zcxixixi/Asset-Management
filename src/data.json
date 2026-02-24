@@ -65,7 +65,7 @@
   ],
   "total_balance": "4,604.91",
   "performance": {
-    "1d": "-11.05%",
+    "1d": "-11.33%",
     "summary": "Verified by Atomic Logic"
   },
   "chart_data": [
@@ -803,7 +803,7 @@
     },
     {
       "date": "2026-02-24",
-      "value": 5176.85
+      "value": 5193.4
     },
     {
       "date": "2026-02-24",
@@ -828,27 +828,27 @@
       }
     ],
     "math_proof": "SUM(4,604.91) == PARTS. Gap: 0.00",
-    "latency_ms": 3575,
-    "last_run": "2026-02-24 10:46:38"
+    "latency_ms": 3746,
+    "last_run": "2026-02-24 11:57:38"
   },
   "insights": {
-    "session_id": "4a962019-75de-41cf-a562-1364b06a4dd9",
-    "response": "1. 投资组合总价值超过4600，表现良好。\n2. 数据精确到多位小数，表明系统计算精密，数据时效性强。",
+    "session_id": "cc3c2616-f6ee-4002-ac2e-a756d3e165b8",
+    "response": "当然，这是两条简短的见解：\n\n1.  投资组合总价值约为4605。\n2.  这是一个良好的开端，显示了稳定的资产积累。",
     "stats": {
       "models": {
         "gemini-2.5-flash-lite": {
           "api": {
             "totalRequests": 1,
             "totalErrors": 0,
-            "totalLatencyMs": 3250
+            "totalLatencyMs": 3084
           },
           "tokens": {
-            "input": 667,
-            "prompt": 1516,
-            "candidates": 65,
-            "total": 1919,
-            "cached": 849,
-            "thoughts": 338,
+            "input": 708,
+            "prompt": 1561,
+            "candidates": 82,
+            "total": 1996,
+            "cached": 853,
+            "thoughts": 353,
             "tool": 0
           }
         },
@@ -856,15 +856,15 @@
           "api": {
             "totalRequests": 1,
             "totalErrors": 0,
-            "totalLatencyMs": 7215
+            "totalLatencyMs": 11171
           },
           "tokens": {
-            "input": 7645,
-            "prompt": 7645,
+            "input": 7690,
+            "prompt": 7690,
             "candidates": 35,
-            "total": 8035,
+            "total": 8512,
             "cached": 0,
-            "thoughts": 355,
+            "thoughts": 787,
             "tool": 0
           }
         }
