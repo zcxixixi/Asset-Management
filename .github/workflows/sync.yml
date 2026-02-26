@@ -1,0 +1,27 @@
+name: Sync
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - run: pip install pandas openpyxl
+      
+      - run: python3 sync_simple.py
+      
+      - run: |
+          git config user.name "bot"
+          git config user.email "bot@github.com"
+          git add src/data.json || true
+          git commit -m "auto" || true
+          git push || true
