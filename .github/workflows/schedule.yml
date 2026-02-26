@@ -21,7 +21,15 @@ jobs:
       
       - name: 安装依赖
         run: |
+          python -m pip install --upgrade pip
           pip install pandas openpyxl
+      
+      - name: 检查文件
+        run: |
+          echo "检查文件列表："
+          ls -la
+          echo "检查assets.xlsx："
+          ls -lh assets.xlsx || echo "assets.xlsx不存在"
       
       - name: 同步数据
         run: |
@@ -31,6 +39,6 @@ jobs:
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git add src/data.json
+          git add src/data.json || echo "无data.json"
           git commit -m "🔄 自动同步Excel数据 [skip ci]" || echo "无更改"
-          git push
+          git push || echo "推送失败"
