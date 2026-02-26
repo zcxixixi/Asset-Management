@@ -1,7 +1,10 @@
 {
-  "last_updated": "2026-02-26 20:13:42",
+  "last_updated": "2026-02-26 20:41:41",
   "summary": {
-    "total": 5202.84,
+    "total_usd": 5202.84,
+    "cash_usd": 571.73,
+    "gold_usd": 1410.13,
+    "stocks_usd": 3220.98,
     "date": "2026-02-23"
   }
 }
