@@ -1,100 +1,102 @@
-# 📈 Agentic Asset Management System
+# 资产管理系统 - 自动化方案
 
-A highly autonomous, end-to-end asset management architecture that fuses Agentic AI (OpenClaw) data ingestion, Python-based data engineering, and a modern React UI.
+## 📊 系统概述
 
-This project aims to deliver a **stable, advanced, and comfortable-to-operate** financial tracking experience.
+本系统从本地Excel文件读取资产数据，自动生成JSON供前端展示使用。
 
-## 🏗️ Architecture Flow
+## 🚀 快速开始
 
-Unlike traditional dashboards that rely on manual data entry, this system is an automated pipeline:
-
-1. **Agentic Data Ingestion (OpenClaw):** The Agent autonomously monitors, scrapes, and parses unstructured financial information (like screenshots or statements) and updates the core Google Sheets database in real-time.
-2. **Data Engineering (Python):** Background scripts clean the tabular data, validate numerical integrities, and format the output into clean JSON APIs.
-3. **Frontend Visualization (React):** A sleek, reactive UI that consumes the processed data to render high-fidelity charts and metrics instantly.
-
-```mermaid
-graph TD
-    %% Styling
-    classDef ai fill:#f3e8ff,stroke:#a855f7,stroke-width:2px,color:#6b21a8
-    classDef cloud fill:#e0f2fe,stroke:#0ea5e9,stroke-width:2px,color:#0369a1
-    classDef script fill:#fef9c3,stroke:#eab308,stroke-width:2px,color:#a16207
-    classDef ui fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#047857
-
-    %% Nodes
-    subgraph Ingestion["🤖 AI Data Ingestion"]
-        A["OpenClaw Agent<br/>(LLM RPA)"]:::ai
-        SRC1["WhatsApp/Telegram<br/>Images"]
-        SRC2["PDF Bank<br/>Statements"]
-        SRC1 --> A
-        SRC2 --> A
-    end
-
-    subgraph Storage["☁️ Cloud Database"]
-        DB[("Google Sheets<br/>(Serverless DB)")]:::cloud
-    end
-
-    subgraph Engineering["⚙️ Data Engineering"]
-        P1["validate.py<br/>(Data Integrity)"]:::script
-        P2["extract_data.py<br/>(JSON Serialization)"]:::script
-    end
-
-    subgraph Frontend["🎨 React Dashboard"]
-        UI["High-Fidelity UI<br/>(Vite + Tailwind)"]:::ui
-        CHART["Recharts<br/>(Linear Spline)"]:::ui
-        UI --- CHART
-    end
-
-    %% Flow
-    A -- "Real-time Update" --> DB
-    DB -. "Raw Export (.xlsx)" .-> P1
-    P1 -- "Clean Data" --> P2
-    P2 -- "Secure JSON Payload" --> UI
+### 手动同步
+```bash
+cd /tmp/Asset-Management
+python3 sync_assets.py
 ```
 
-## ✨ Demo Video
+### 定时自动同步
+```bash
+# 编辑crontab
+crontab -e
 
-![Anonymized Demo](./public/demo.webp)
-_(The data in this demo has been fully anonymized via our secure scalar engine, preserving accurate yield curves while hiding true net worth.)_
+# 每6小时执行一次
+0 */6 * * * cd /tmp/Asset-Management && python3 sync_assets.py >> sync.log 2>&1
+```
 
-## 🌟 Key Capabilities
+## 📁 文件结构
+```
+/tmp/Asset-Management/
+├── assets.xlsx              # 本地Excel模板
+├── sync_assets.py          # 自动化脚本
+├── src/
+│   └── data.json         # 前端数据文件
+└── README.md            # 本文档
+```
 
-- **Realistic Linear Charting:** Uses `recharts` to render a highly accurate, un-smoothed historical Net Asset Value (NAV) curve, complete with an interactive X-axis timeline.
-- **Dynamic Time Ranges:** Zero-latency toggles to slice data across multiple horizons (**7D**, **30D**, and **ALL**) without reloading.
-- **Bone-Screen Privacy Mode:** A hardware-level secure UI toggle that masks all sensitive numerical data with an elegant `••••••` string replacement, perfect for public viewing or screen sharing.
-- **Data Anonymization Engine:** A specialized Python script (`generate_demo_data.py`) scales true wealth by a secret random factor, allowing you to share your UI iterations safely.
+## 💰 数据来源
 
-## 🚀 Future Roadmap
+- **Excel文件**: `/Users/kaijimima1234/Desktop/dashboard-demo/public/assets.xlsx`
+- **工作表**:
+  - Daily: 每日资产数据
+  - Holdings: 持仓详情
+  - Chart: NAV历史数据
 
-Our ultimate goal is to evolve this dashboard into a comprehensive personal wealth workstation:
+## 📊 数据结构
 
-- **Stability & Precision:** Continuously perfect the current real-time data sync pipeline to ensure zero-downtime and 100% data fidelity.
-- **Advanced UX:** Create an even more comfortable and seamless user experience.
-- **Expanded Financial Tools:** Introduce lightweight utility modules (e.g., tax estimators, multi-currency conversion, portfolio rebalancing calculators) directly into the UI.
+### summary (摘要)
+- total_usd: 总资产 (USD)
+- cash_usd: 现金 (USD)
+- gold_usd: 黄金 (USD)
+- stocks_usd: 美股 (USD)
+- nav: 净值
+- date: 最新日期
 
-## 🛠️ Tech Stack
+### holdings (持仓)
+- symbol: 股票/基金代码
+- name: 名称
+- quantity: 数量
+- price_usd: 价格 (USD)
+- market_value_usd: 市值 (USD)
 
-- **Agent Framework:** OpenClaw (LLM-driven RPA)
-- **Data Layer:** Python, Pandas, Google Sheets API
-- **Frontend:** React 18, Vite, Tailwind CSS, Recharts, Framer Motion
+### chart_data (图表)
+- date: 日期
+- nav: 净值
 
-## ⚙️ Getting Started
+### daily_data (每日数据)
+- date: 日期
+- cash_usd: 现金 (USD)
+- gold_usd: 黄金 (USD)
+- stocks_usd: 美股 (USD)
+- total_usd: 总资产 (USD)
+- nav: 净值
+- note: 备注
 
-1. Clone the repository:
+## 🔄 工作流程
 
-   ```bash
-   git clone https://github.com/zcxixixi/Asset-Management.git
-   cd Asset-Management
-   ```
+1. 读取本地Excel文件
+2. 清理和转换数据格式
+3. 生成JSON文件
+4. 自动提交到Git (可选)
 
-2. Install dependencies:
+## 🎯 系统状态
 
-   ```bash
-   npm install
-   ```
+- ✅ 最后更新: 2026-02-26 18:51:45
+- ✅ 总资产: $5,202.84
+- ✅ NAV: 1.25
 
-3. Extract demo data and start the Vite development server:
-   ```bash
-   python3 src/generate_demo_data.py
-   npm run dev
-   ```
-   Navigate to `http://localhost:5173`.
+## 📝 注意事项
+
+1. Excel文件必须保持固定格式
+2. 日期格式: YYYY-MM-DD
+3. 金额格式: 保留2位小数
+4. 每次运行会覆盖旧的data.json
+
+## 🚨 故障排除
+
+### data.json未更新
+- 检查Excel文件路径是否正确
+- 检查Excel文件是否可读
+- 查看sync.log日志文件
+
+### 前端显示错误
+- 检查data.json格式是否正确
+- 确认JSON字段完整性
+- 检查浏览器控制台错误
