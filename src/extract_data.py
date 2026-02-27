@@ -2,6 +2,7 @@
 """
 Real-Time Asset Synchronization Script
 Uses yfinance to dynamically calculate the latest market values based on raw quantities listed in assets.xlsx
+Supports the new Brokerage Export Format
 """
 import os
 import json
@@ -25,14 +26,24 @@ def safe_float(v):
 def get_realtime_price(symbol):
     if symbol.upper() == 'CASH': return 1.0
     try:
-        return yf.Ticker(symbol).fast_info['last_price']
+        # Convert broker tickers like NVDA.US to Yahoo Finance friendly NVDA
+        yf_symbol = symbol
+        if str(symbol).endswith('.US'):
+            yf_symbol = str(symbol).replace('.US', '')
+        
+        # Gold ETF vs Futures distinction
+        if symbol == 'GOLD.CN' or 'GOLD' in str(symbol).upper():
+            yf_symbol = 'GC=F'
+
+        return yf.Ticker(yf_symbol).fast_info['last_price']
     except Exception as e:
-        print(f"Warning: Failed to fetch {symbol}: {e}")
+        print(f"Warning: Failed to fetch {symbol} ({yf_symbol}): {e}")
         return 0.0
 
 def format_asset_label(name, symbol):
-    if symbol == 'GC=F': return 'Gold USD'
-    if symbol in ['NVDA', 'TSLA', 'QQQ']: return 'US Stocks'
+    sym_upper = str(symbol).upper()
+    if 'GOLD' in sym_upper or 'GC=F' in sym_upper: return 'Gold USD'
+    if '.US' in sym_upper or sym_upper in ['NVDA', 'TSLA', 'QQQ', 'SGOV']: return 'US Stocks'
     return name
 
 def extract_data():
@@ -41,8 +52,7 @@ def extract_data():
             print(f"Error: {INPUT_PATH} not found in repository root.")
             return
 
-        print("Reading local Excel Holdings...")
-        # Read the new Holdings sheet
+        print("Reading local Excel Holdings (Broker Export Format)...")
         df_holdings = pd.read_excel(INPUT_PATH, sheet_name='Holdings')
         df_holdings = df_holdings.dropna(how='all')
         
@@ -52,9 +62,12 @@ def extract_data():
         
         print("\nFetching real-time market data via yfinance...")
         for _, row in df_holdings.iterrows():
-            symbol = str(row['Symbol']).strip()
-            name = str(row['Name']).strip()
-            qty = safe_float(row['Quantity'])
+            # Check if row is empty/NaN for symbol
+            if pd.isna(row.get('symbol')): continue
+            
+            symbol = str(row.get('symbol', 'CASH')).strip()
+            name = str(row.get('name', 'Unknown')).strip()
+            qty = safe_float(row.get('quantity'))
             
             # Fetch Live Price & Compute Value
             price = get_realtime_price(symbol)
@@ -70,7 +83,7 @@ def extract_data():
             assets_grouped[category_label] += usd_value
             
             # Add to detailed holdings table if it's not pure cash and has value
-            if symbol != 'CASH' and usd_value > 0:
+            if symbol.upper() != 'CASH' and usd_value > 0:
                 live_holdings.append({
                     "symbol": symbol,
                     "name": name,
@@ -80,7 +93,7 @@ def extract_data():
 
         # Format top level categories into correct array format for React UI
         final_assets = [
-            {"label": "Cash USD", "value": f"{assets_grouped.get('Cash USD', assets_grouped.get('USD Cash', 0)):,.2f}"},
+            {"label": "Cash USD", "value": f"{assets_grouped.get('Cash USD', assets_grouped.get('USD Cash', assets_grouped.get('现金', 0))):,.2f}"},
             {"label": "Gold USD", "value": f"{assets_grouped.get('Gold USD', 0):,.2f}"},
             {"label": "US Stocks", "value": f"{assets_grouped.get('US Stocks', 0):,.2f}"}
         ]
@@ -111,7 +124,7 @@ def extract_data():
             "total_balance": f"{total_balance:,.2f}",
             "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "insights": insights,
-            "performance": {"1d": "Live", "summary": "Full Auto yfinance Integration"}
+            "performance": {"1d": "Live", "summary": "Broker Export Integration"}
         }
 
         with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:

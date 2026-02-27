@@ -6,37 +6,43 @@
     },
     {
       "label": "Gold USD",
-      "value": "1,499.95"
+      "value": "1,498.60"
     },
     {
       "label": "US Stocks",
-      "value": "1,692.01"
+      "value": "3,215.86"
     }
   ],
   "holdings": [
     {
-      "symbol": "GC=F",
-      "name": "Gold Futures",
-      "qty": "0.2877491817892204",
-      "value": "1,499.95"
+      "symbol": "NVDA.US",
+      "name": "NVIDIA Corp.",
+      "qty": "0.734",
+      "value": "135.71"
     },
     {
-      "symbol": "QQQ",
-      "name": "Invesco QQQ Trust",
-      "qty": "1.7327",
-      "value": "1,055.63"
+      "symbol": "SGOV.US",
+      "name": "iShares 0-3 Month Treasury Bond ETF",
+      "qty": "15.1446",
+      "value": "1,523.85"
     },
     {
-      "symbol": "TSLA",
-      "name": "Tesla Inc",
+      "symbol": "TSLA.US",
+      "name": "Tesla, Inc.",
       "qty": "1.2254",
       "value": "500.67"
     },
     {
-      "symbol": "NVDA",
-      "name": "NVIDIA Corp",
-      "qty": "0.734",
-      "value": "135.71"
+      "symbol": "QQQ.US",
+      "name": "NASDAQ 100 ETF",
+      "qty": "1.7327",
+      "value": "1,055.63"
+    },
+    {
+      "symbol": "GOLD.CN",
+      "name": "博时黄金ETF联接C(估算USD)",
+      "qty": "0.28775",
+      "value": "1,498.60"
     }
   ],
   "chart_data": [
@@ -774,23 +780,23 @@
     },
     {
       "date": "2026-02-24",
-      "value": 0.9014
+      "value": 1.2674
     },
     {
       "date": "2026-02-25",
-      "value": 0.9114
+      "value": 1.2774
     },
     {
       "date": "2026-02-26",
-      "value": 0.9043
+      "value": 1.27
     },
     {
       "date": "2026-02-27",
-      "value": 0.9043
+      "value": 1.27
     }
   ],
-  "total_balance": "3,763.69",
-  "last_updated": "2026-02-27 10:16:44",
+  "total_balance": "5,286.19",
+  "last_updated": "2026-02-27 10:30:29",
   "insights": [
     {
       "type": "opportunity",
@@ -800,11 +806,11 @@
     {
       "type": "neutral",
       "asset": "Portfolio",
-      "text": "7-Day tracking NAV shift stands at -28.23%."
+      "text": "7-Day tracking NAV shift stands at +0.79%."
     }
   ],
   "performance": {
     "1d": "Live",
-    "summary": "Full Auto yfinance Integration"
+    "summary": "Broker Export Integration"
   }
 }
