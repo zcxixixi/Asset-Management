@@ -6,14 +6,27 @@
     },
     {
       "label": "Gold USD",
-      "value": "1,494.08"
+      "value": "1,494.58"
     },
     {
       "label": "US Stocks",
-      "value": "3,220.98"
+      "value": "3,217.09"
     }
   ],
-  "holdings": [],
+  "holdings": [
+    {
+      "symbol": "GC=F",
+      "name": "Gold Futures",
+      "qty": "0.287",
+      "value": "1,494.58"
+    },
+    {
+      "symbol": "NVDA",
+      "name": "NVIDIA Corp",
+      "qty": "17.4",
+      "value": "3,217.09"
+    }
+  ],
   "chart_data": [
     {
       "date": "2025-08-25",
@@ -748,17 +761,22 @@
       "value": 1.25
     }
   ],
-  "total_balance": "5,286.79",
-  "last_updated": "2026-02-23",
+  "total_balance": "5,283.40",
+  "last_updated": "2026-02-27 10:06:41",
   "insights": [
+    {
+      "type": "opportunity",
+      "asset": "NVIDIA Corp",
+      "text": "Real-time AI ticker updates successfully firing via local yfinance engine."
+    },
     {
       "type": "neutral",
       "asset": "Portfolio",
-      "text": "Local synchronization active. Independent from Google services."
+      "text": "7-Day tracking NAV shift stands at +2.46%."
     }
   ],
   "performance": {
     "1d": "Live",
-    "summary": "Local File Protocol"
+    "summary": "Full Auto yfinance Integration"
   }
 }
