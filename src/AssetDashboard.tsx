@@ -124,6 +124,14 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
   }, [timeRange]);
 
   const p = (val: string | number) => isPrivacyMode ? '••••' : val;
+  const formatChartDate = (date: string) => {
+    const parsedDate = new Date(`${date}T00:00:00Z`);
+    if (Number.isNaN(parsedDate.getTime())) return date;
+    if (timeRange === 'all') {
+      return parsedDate.toLocaleDateString(undefined, { month: 'short', year: '2-digit', timeZone: 'UTC' });
+    }
+    return parsedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  };
 
   const tabs: Array<{ id: ActiveTab; icon: React.ReactNode }> = [
     { id: 'overview', icon: <LayoutDashboard size={18} /> },
@@ -195,11 +203,19 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
 
               <section className="h-48 md:h-64 w-full -ml-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={filteredChartData}>
+                  <AreaChart data={filteredChartData} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
                     <defs>
                       <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/><stop offset="95%" stopColor="#2563eb" stopOpacity={0}/></linearGradient>
                     </defs>
-                    <YAxis domain={['dataMin', 'dataMax']} hide={true} /><XAxis dataKey="date" hide={true} />
+                    <YAxis domain={['dataMin', 'dataMax']} hide={true} />
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={formatChartDate}
+                      axisLine={false}
+                      tickLine={false}
+                      minTickGap={20}
+                      tick={{ fontSize: 10, fill: '#94a3b8' }}
+                    />
                     <Area type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={3} fill="url(#colorValue)" animationDuration={1500} />
                   </AreaChart>
                 </ResponsiveContainer>
