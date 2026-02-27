@@ -5,11 +5,22 @@ on:
     - cron: '0 */6 * * *' # Run every 6 hours
   workflow_dispatch:      # Allow manual trigger
 
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-data-sync
+  cancel-in-progress: true
+
 jobs:
   sync_and_deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
       
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -17,15 +28,20 @@ jobs:
           python-version: '3.11'
           
       - name: Install dependencies
-        run: pip install pandas openpyxl
+        run: pip install -r requirements.txt
         
       - name: Process Local Data
         run: python src/extract_data.py
+
+      - name: Validate extraction output
+        run: python src/extract_data_test.py
         
       - name: Commit and Push Changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout main
           git add src/data.json
-          git commit -m "chore: process local assets.xlsx updates" || echo "No changes to commit"
-          git push || echo "No changes to push"
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore: process local assets.xlsx updates"
+          git push origin HEAD:main

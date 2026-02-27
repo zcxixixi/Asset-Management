@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
   test-local-extract:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       
@@ -16,8 +17,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       
-      - name: Run local extraction
-        run: python src/extract_data.py
-
       - name: Validate extracted JSON schema
         run: python src/extract_data_test.py
+
+      - name: Validate Feb 24-27 autofill regression
+        run: python src/backfill_regression_test.py
+
+      - name: Validate safe-float robustness
+        run: python src/stability_test.py
