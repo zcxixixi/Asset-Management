@@ -40,6 +40,16 @@ interface Insight {
   text: string;
 }
 
+interface DashboardAsset {
+  label: string;
+  value: string | number;
+}
+
+interface AdvisorPayload {
+  insights?: Insight[];
+  assets?: DashboardAsset[];
+}
+
 export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefingProps) {
   
   // Scroll to top when this view mounts
@@ -47,7 +57,7 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
     window.scrollTo(0, 0);
   }, []);
 
-  const getImpactIcon = (type: string) => {
+  const getImpactIcon = (type: Insight['type']) => {
     switch (type) {
       case 'opportunity': return <TrendingUp className="text-emerald-500" size={20} />;
       case 'warning': return <AlertCircle className="text-amber-500" size={20} />;
@@ -55,7 +65,7 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
     }
   };
 
-  const getImpactColor = (type: string) => {
+  const getImpactColor = (type: Insight['type']) => {
     switch (type) {
       case 'opportunity': return 'bg-emerald-50 border-emerald-100/50';
       case 'warning': return 'bg-amber-50 border-amber-100/50';
@@ -63,8 +73,10 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
     }
   };
 
+  const typedData = dashboardData as AdvisorPayload;
+
   // Check if OpenClaw has written the real insights array, otherwise fallback to mock
-  const insights: Insight[] = (dashboardData as any).insights || [
+  const insights: Insight[] = typedData.insights || [
     { type: 'opportunity', asset: 'Gold USD', text: MOCK_AI_REPORT.portfolioImpact[0].rationale },
     { type: 'neutral', asset: 'US Stocks', text: MOCK_AI_REPORT.portfolioImpact[1].rationale },
     { type: 'warning', asset: 'CASH', text: MOCK_AI_REPORT.portfolioImpact[2].rationale }
@@ -152,8 +164,7 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
           <div className="grid gap-4">
             {insights.map((impact, idx) => {
               // Find the user's actual holding from data.json to bind reality to the UI
-              const typedData = dashboardData as { assets?: { label: string; value: number }[] };
-              const holding = typedData.assets?.find((a: { label: string; value: number }) => a.label === impact.asset);
+              const holding = typedData.assets?.find((asset) => asset.label === impact.asset);
               
               return (
                 <div 
