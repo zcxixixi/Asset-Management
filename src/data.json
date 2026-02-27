@@ -6,7 +6,7 @@
     },
     {
       "label": "Gold USD",
-      "value": "1,496.21"
+      "value": "1,499.18"
     },
     {
       "label": "US Stocks",
@@ -42,7 +42,7 @@
       "symbol": "GOLD.CN",
       "name": "博时黄金ETF联接C(估算USD)",
       "qty": "0.28775",
-      "value": "1,496.21"
+      "value": "1,499.18"
     }
   ],
   "chart_data": [
@@ -795,8 +795,8 @@
       "value": 1.27
     }
   ],
-  "total_balance": "5,283.81",
-  "last_updated": "2026-02-27 03:08:36",
+  "total_balance": "5,286.77",
+  "last_updated": "2026-02-27 06:57:44",
   "insights": [
     {
       "type": "opportunity",
