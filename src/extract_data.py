@@ -32,7 +32,7 @@ def get_realtime_price(symbol):
 
 def format_asset_label(name, symbol):
     if symbol == 'GC=F': return 'Gold USD'
-    if symbol == 'NVDA' or symbol == 'TSLA': return 'US Stocks'
+    if symbol in ['NVDA', 'TSLA', 'QQQ']: return 'US Stocks'
     return name
 
 def extract_data():
