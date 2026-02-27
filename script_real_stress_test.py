@@ -5,7 +5,7 @@ import sys
 
 # Constants
 CHECK_INTERVAL_SECONDS = 60
-TOTAL_MINUTES = 12 * 60  # 12 hours
+TOTAL_MINUTES = 4  # Run for 4 minutes per heartbeat (fits nicely in a 5-min cron)
 BTC_AMOUNT = 1.05
 ETH_AMOUNT = 24.89
 INITIAL_USDC = 49658.33
@@ -25,8 +25,7 @@ def validate_assets():
     print(f"[{datetime.utcnow().isoformat()}Z] Portfolio Value: ${portfolio_value:.2f} (BTC: ${btc_price:.2f}, ETH: ${eth_price:.2f})", flush=True)
 
 if __name__ == "__main__":
-    print("Starting real time-based stress test for price checking and asset calculation...")
-    print("Note: GitHub-hosted runners have a hard limit of 6 hours per job. This will run until GitHub terminates it or 12 hours passes.", flush=True)
+    print(f"Starting Distributed Heartbeat Stress Test (Duration: {TOTAL_MINUTES} minutes)...")
     
     for i in range(TOTAL_MINUTES):
         try:
@@ -39,4 +38,4 @@ if __name__ == "__main__":
             
         time.sleep(CHECK_INTERVAL_SECONDS)
         
-    print("Stress test completed successfully after 12 hours.")
+    print(f"Heartbeat cycle completed successfully. The next cron job will pick up shortly.")

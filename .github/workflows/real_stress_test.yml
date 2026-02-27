@@ -1,12 +1,14 @@
-name: Real 12-Hour Stress Test
+name: Heartbeat 24/7 Stress Test
 
 on:
+  schedule:
+    - cron: '*/5 * * * *' # Run every 5 minutes
   workflow_dispatch:
 
 jobs:
-  stress-test:
+  heartbeat-pulse:
     runs-on: ubuntu-latest
-    timeout-minutes: 720 # Will request 12 hours, but GitHub free runners cap out at 360 mins (6 hours)
+    timeout-minutes: 10 
     steps:
       - uses: actions/checkout@v4
       
@@ -18,5 +20,5 @@ jobs:
       - name: Install dependencies
         run: pip install requests
       
-      - name: Run Real Stress Test
+      - name: Run Heartbeat Probe
         run: python script_real_stress_test.py
