@@ -1,0 +1,36 @@
+name: Auto Data Sync
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Run every 6 hours
+  workflow_dispatch:      # Allow manual trigger
+
+jobs:
+  sync_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: pip install gspread gspread-dataframe pandas openpyxl
+        
+      - name: Setup Google Credentials
+        run: |
+          mkdir -p ~/.config/gspread
+          echo "${{ secrets.GOOGLE_CREDENTIALS }}" > ~/.config/gspread/service_account.json
+        
+      - name: Pull Data from Google Sheets
+        run: python src/extract_data.py
+        
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/data.json
+          git commit -m "chore: auto-sync live data from Google Sheets" || echo "No changes to commit"
+          git push || echo "No changes to push"
