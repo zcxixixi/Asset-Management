@@ -152,7 +152,8 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
           <div className="grid gap-4">
             {insights.map((impact, idx) => {
               // Find the user's actual holding from data.json to bind reality to the UI
-              const holding = dashboardData.assets.find(a => a.label === impact.asset);
+              const typedData = dashboardData as { assets?: { label: string; value: number }[] };
+              const holding = typedData.assets?.find((a: { label: string; value: number }) => a.label === impact.asset);
               
               return (
                 <div 
