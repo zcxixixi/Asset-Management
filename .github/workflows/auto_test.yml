@@ -3,7 +3,7 @@ name: Auto Test
 on: [push, pull_request]
 
 jobs:
-  test:
+  test-local-extract:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,8 +13,11 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Install
-        run: pip install pandas openpyxl
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       
-      - name: Test
-        run: python3 -c "import pandas; print('OK')"
+      - name: Run local extraction
+        run: python src/extract_data.py
+
+      - name: Validate extracted JSON schema
+        run: python src/extract_data_test.py

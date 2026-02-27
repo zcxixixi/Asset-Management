@@ -6,7 +6,6 @@ Reads directly from local assets.xlsx and updates data.json without Google APIs
 import os
 import json
 import pandas as pd
-from datetime import datetime
 
 INPUT_PATH = 'assets.xlsx'
 OUTPUT_PATH = 'src/data.json'
@@ -34,6 +33,7 @@ def extract_data():
         df_daily.columns = df_daily.columns.astype(str).str.strip().str.lower()
         
         latest = df_daily.iloc[-1]
+        latest_date = str(latest.get('date')).split(' ')[0]
         
         # Local Excel doesn't have holdings, so we generate dynamic insights based off Daily
         insights = [
@@ -57,7 +57,8 @@ def extract_data():
             "holdings": [], 
             "chart_data": chart_data,
             "total_balance": f"{safe_float(latest['total_usd']):,.2f}",
-            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            # Stable timestamp derived from source data to avoid no-op auto-commits.
+            "last_updated": latest_date,
             "insights": insights,
             "performance": {"1d": "Live", "summary": "Local File Protocol"}
         }
