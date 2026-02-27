@@ -4,7 +4,107 @@ import { AreaChart, Area, ResponsiveContainer, YAxis, XAxis } from 'recharts';
 import { Eye, EyeOff, Sparkles, ShieldCheck, LayoutDashboard, ListFilter, Activity, Fingerprint, Database, ChevronRight } from 'lucide-react';
 import dashboardDataRaw from './data.json';
 
-const dashboardData = dashboardDataRaw as any;
+type ActiveTab = 'overview' | 'holdings' | 'diagnostics';
+type TimeRange = '7d' | '30d' | 'all';
+
+interface AssetItem {
+  label: string;
+  value: string | number;
+}
+
+interface HoldingItem {
+  symbol: string;
+  name: string;
+  qty: string | number;
+  value: string | number;
+}
+
+interface ChartDataPoint {
+  date: string;
+  value: number;
+}
+
+interface DiagnosticsStep {
+  name: string;
+  status: string;
+}
+
+interface DiagnosticsData {
+  math_proof: string;
+  api_status: string;
+  latency_ms: string | number;
+  last_run: string;
+  steps: DiagnosticsStep[];
+}
+
+interface DashboardData {
+  total_balance: string | number;
+  performance: { '1d': string | number };
+  chart_data: ChartDataPoint[];
+  assets: AssetItem[];
+  holdings: HoldingItem[];
+  diagnostics: DiagnosticsData;
+}
+
+interface RawSummary {
+  total_usd?: number;
+  cash_usd?: number;
+  gold_usd?: number;
+  stocks_usd?: number;
+}
+
+interface RawChartDataPoint {
+  date?: string;
+  value?: number;
+  total_usd?: number;
+}
+
+interface RawDashboardData {
+  total_balance?: string | number;
+  performance?: { '1d'?: string | number };
+  chart_data?: RawChartDataPoint[];
+  assets?: AssetItem[];
+  holdings?: HoldingItem[];
+  diagnostics?: Partial<DiagnosticsData>;
+  summary?: RawSummary;
+  daily_data?: { date?: string; total_usd?: number }[];
+  last_updated?: string;
+}
+
+const rawData = dashboardDataRaw as RawDashboardData;
+
+const normalizedChartData: ChartDataPoint[] = (rawData.chart_data ?? [])
+  .map((point) => ({
+    date: String(point.date ?? ''),
+    value: Number(point.value ?? point.total_usd ?? 0),
+  }))
+  .filter((point) => point.date.length > 0);
+
+const fallbackChartData: ChartDataPoint[] = (rawData.daily_data ?? []).map((point) => ({
+  date: String(point.date ?? ''),
+  value: Number(point.total_usd ?? 0),
+}));
+
+const fallbackAssets: AssetItem[] = [
+  { label: 'Cash USD', value: Number(rawData.summary?.cash_usd ?? 0).toFixed(2) },
+  { label: 'Gold USD', value: Number(rawData.summary?.gold_usd ?? 0).toFixed(2) },
+  { label: 'US Stocks', value: Number(rawData.summary?.stocks_usd ?? 0).toFixed(2) },
+];
+
+const dashboardData: DashboardData = {
+  total_balance: rawData.total_balance ?? Number(rawData.summary?.total_usd ?? 0).toFixed(2),
+  performance: { '1d': rawData.performance?.['1d'] ?? 'Live' },
+  chart_data: normalizedChartData.length > 0 ? normalizedChartData : fallbackChartData,
+  assets: rawData.assets && rawData.assets.length > 0 ? rawData.assets : fallbackAssets,
+  holdings: rawData.holdings ?? [],
+  diagnostics: {
+    math_proof: rawData.diagnostics?.math_proof ?? 'N/A',
+    api_status: rawData.diagnostics?.api_status ?? 'Unknown',
+    latency_ms: rawData.diagnostics?.latency_ms ?? '--',
+    last_run: rawData.diagnostics?.last_run ?? rawData.last_updated ?? 'N/A',
+    steps: rawData.diagnostics?.steps ?? [{ name: 'Data Load', status: 'Success' }],
+  },
+};
 
 interface AssetDashboardProps {
   onOpenAdvisor?: () => void;
@@ -13,8 +113,8 @@ interface AssetDashboardProps {
 }
 
 export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPrivacyMode }: AssetDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'holdings' | 'diagnostics'>('overview');
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('7d');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+  const [timeRange, setTimeRange] = useState<TimeRange>('7d');
 
   const filteredChartData = React.useMemo(() => {
     const data = dashboardData.chart_data;
@@ -24,6 +124,12 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
   }, [timeRange]);
 
   const p = (val: string | number) => isPrivacyMode ? '••••' : val;
+
+  const tabs: Array<{ id: ActiveTab; icon: React.ReactNode }> = [
+    { id: 'overview', icon: <LayoutDashboard size={18} /> },
+    { id: 'holdings', icon: <ListFilter size={18} /> },
+    { id: 'diagnostics', icon: <Activity size={18} /> },
+  ];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] relative text-slate-900 font-sans selection:bg-blue-100">
@@ -45,14 +151,10 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
           </div>
           <div className="flex items-center space-x-2">
             <div className="flex bg-slate-200/50 p-1 rounded-xl">
-               {[
-                 { id: 'overview', icon: <LayoutDashboard size={18} /> },
-                 { id: 'holdings', icon: <ListFilter size={18} /> },
-                 { id: 'diagnostics', icon: <Activity size={18} /> }
-               ].map(tab => (
+               {tabs.map((tab) => (
                  <button 
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`p-2 rounded-lg transition-all ${activeTab === tab.id ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
                  >
                    {tab.icon}
@@ -84,8 +186,8 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
                     </div>
                   </div>
                   <div className="flex space-x-1 bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
-                    {['7d', '30d', 'all'].map((range) => (
-                      <button key={range} onClick={() => setTimeRange(range as any)} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${timeRange === range ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}>{range.toUpperCase()}</button>
+                    {(['7d', '30d', 'all'] as const).map((range) => (
+                      <button key={range} onClick={() => setTimeRange(range)} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${timeRange === range ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}>{range.toUpperCase()}</button>
                     ))}
                   </div>
                 </div>
@@ -104,7 +206,7 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
               </section>
 
               <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {dashboardData.assets.map((asset: any) => (
+                {dashboardData.assets.map((asset) => (
                   <div key={asset.label} className="p-6 rounded-[2rem] bg-white border border-slate-200/60 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-2 opacity-10"><Database size={40} /></div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate">{asset.label}</p>
@@ -127,7 +229,7 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
                     </tr>
                   </thead>
                   <tbody>
-                    {dashboardData.holdings.map((h: any, idx: number) => (
+                    {dashboardData.holdings.map((h, idx) => (
                       <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-5 border-b border-slate-50">
                           <div className="text-sm font-bold text-slate-800">{h.symbol}</div>
@@ -165,7 +267,7 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
                     <h3 className="text-xs font-bold uppercase tracking-widest">Pipeline Health</h3>
                   </div>
                   <div className="space-y-3">
-                    {dashboardData.diagnostics.steps.map((step: any, i: number) => (
+                    {dashboardData.diagnostics.steps.map((step, i) => (
                       <div key={i} className="flex items-center space-x-3">
                         <div className={`w-2 h-2 rounded-full ${step.status === 'Success' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-amber-500'}`} />
                         <span className="text-xs font-medium text-slate-500 truncate">{step.name}</span>
@@ -211,7 +313,7 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
                 </span>
                 <a 
                   href="#"
-                  onClick={(e) => { e.preventDefault(); onOpenAdvisor && onOpenAdvisor(); }}
+                  onClick={(e) => { e.preventDefault(); onOpenAdvisor?.(); }}
                   className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-200 transition-colors cursor-pointer group-hover:bg-slate-100"
                   aria-label="View Analysis"
                 >
@@ -225,13 +327,13 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
             </h3>
             
             <p className="text-slate-500 leading-relaxed text-sm md:text-[15px] font-normal tracking-wide max-w-2xl">
-              The Federal Reserve strongly hints at upcoming rate cuts. Your <span className="text-slate-900 font-semibold underline decoration-slate-200 underline-offset-4 pointer-events-none">Gold USD</span> position ({isPrivacyMode ? '••••••' : dashboardData.assets.find((a: any) => a.label === 'Gold USD')?.value}) is expected to directly benefit as a hedge asset; we recommend continuing to hold. Prepare for potential sector rotation in the <span className="text-slate-900 font-semibold underline decoration-slate-200 underline-offset-4 pointer-events-none">US Stocks</span> portion ({isPrivacyMode ? '••••••' : dashboardData.assets.find((a: any) => a.label === 'US Stocks')?.value}) of your portfolio.
+              The Federal Reserve strongly hints at upcoming rate cuts. Your <span className="text-slate-900 font-semibold underline decoration-slate-200 underline-offset-4 pointer-events-none">Gold USD</span> position ({isPrivacyMode ? '••••••' : dashboardData.assets.find((asset) => asset.label === 'Gold USD')?.value}) is expected to directly benefit as a hedge asset; we recommend continuing to hold. Prepare for potential sector rotation in the <span className="text-slate-900 font-semibold underline decoration-slate-200 underline-offset-4 pointer-events-none">US Stocks</span> portion ({isPrivacyMode ? '••••••' : dashboardData.assets.find((asset) => asset.label === 'US Stocks')?.value}) of your portfolio.
             </p>
 
             <div className="pt-6 flex items-center justify-between border-t border-slate-100 mt-8">
               <a 
                 href="#" 
-                onClick={(e) => { e.preventDefault(); onOpenAdvisor && onOpenAdvisor(); }}
+                onClick={(e) => { e.preventDefault(); onOpenAdvisor?.(); }}
                 className="text-blue-600 text-sm font-medium hover:text-blue-700 hover:underline underline-offset-4 cursor-pointer"
               >
                 View Analysis Details
