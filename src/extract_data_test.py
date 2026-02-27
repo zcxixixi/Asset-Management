@@ -1,11 +1,73 @@
-import gspread
-import traceback
+#!/usr/bin/env python3
+"""
+Local data extraction regression test.
+Validates that src/extract_data.py produces a dashboard-compatible JSON payload.
+"""
+import json
+import subprocess
+import sys
+from pathlib import Path
 
-SHEET_ID = '1_J8C9rKSRR0SbmOHO1N2ixeerdQ8GM-aKG4jJkWFniE'
+REPO_ROOT = Path(__file__).resolve().parents[1]
+INPUT_PATH = REPO_ROOT / "assets.xlsx"
+OUTPUT_PATH = REPO_ROOT / "src" / "data.json"
 
-try:
-    gc = gspread.service_account()
-    sh = gc.open_by_key(SHEET_ID)
-    print("SUCCESS: Access granted.")
-except Exception:
-    traceback.print_exc()
+
+def fail(message: str) -> None:
+    print(f"FAIL: {message}")
+    raise SystemExit(1)
+
+
+def assert_true(condition: bool, message: str) -> None:
+    if not condition:
+        fail(message)
+
+
+def run_extract_data() -> None:
+    result = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "src" / "extract_data.py")],
+        capture_output=True,
+        text=True,
+        cwd=str(REPO_ROOT),
+    )
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr)
+        fail("extract_data.py exited with non-zero status")
+
+
+def validate_payload() -> None:
+    assert_true(INPUT_PATH.exists(), "assets.xlsx is missing")
+    assert_true(OUTPUT_PATH.exists(), "src/data.json was not generated")
+
+    with OUTPUT_PATH.open("r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    required_keys = {"assets", "holdings", "chart_data", "total_balance", "last_updated", "insights", "performance"}
+    missing = required_keys - payload.keys()
+    assert_true(not missing, f"data.json missing keys: {sorted(missing)}")
+
+    assets = payload["assets"]
+    assert_true(isinstance(assets, list) and len(assets) == 3, "assets must be a 3-item list")
+    expected_labels = {"Cash USD", "Gold USD", "US Stocks"}
+    labels = {str(item.get("label")) for item in assets}
+    assert_true(labels == expected_labels, f"unexpected asset labels: {sorted(labels)}")
+
+    chart_data = payload["chart_data"]
+    assert_true(isinstance(chart_data, list) and len(chart_data) > 0, "chart_data must be a non-empty list")
+    first_point = chart_data[0]
+    assert_true("date" in first_point and "value" in first_point, "chart_data point must include date/value")
+
+    try:
+        float(str(payload["total_balance"]).replace(",", ""))
+    except ValueError as exc:
+        fail(f"total_balance is not numeric: {exc}")
+
+    performance = payload["performance"]
+    assert_true(isinstance(performance, dict) and "1d" in performance, "performance must include 1d")
+
+
+if __name__ == "__main__":
+    run_extract_data()
+    validate_payload()
+    print("PASS: extract_data output schema is valid")
