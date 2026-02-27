@@ -56,6 +56,9 @@ def extract_data():
         df_holdings = pd.read_excel(INPUT_PATH, sheet_name='Holdings')
         df_holdings = df_holdings.dropna(how='all')
         
+        # Robustness: Normalize column names to lowercase and strip whitespace
+        df_holdings.columns = [str(c).strip().lower() for c in df_holdings.columns]
+        
         assets_grouped = {}
         total_balance = 0.0
         live_holdings = []
