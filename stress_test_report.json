@@ -1,9 +1,0 @@
-{
-  "timestamp": "2026-02-26 19:22",
-  "results": {
-    "1000_rows": {"size": "112.9KB", "time": "0.011s"},
-    "10000_rows": {"size": "1.22MB", "time": "0.035s"},
-    "concurrency": {"ops_per_sec": 461, "time": "2.168s"}
-  },
-  "conclusion": "系统性能优秀，可处理10年数据"
-}
