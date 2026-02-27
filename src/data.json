@@ -6,25 +6,37 @@
     },
     {
       "label": "Gold USD",
-      "value": "1,496.02"
+      "value": "1,499.95"
     },
     {
       "label": "US Stocks",
-      "value": "3,217.09"
+      "value": "1,692.01"
     }
   ],
   "holdings": [
     {
       "symbol": "GC=F",
       "name": "Gold Futures",
-      "qty": "0.287",
-      "value": "1,496.02"
+      "qty": "0.2877491817892204",
+      "value": "1,499.95"
+    },
+    {
+      "symbol": "QQQ",
+      "name": "Invesco QQQ Trust",
+      "qty": "1.7327",
+      "value": "1,055.63"
+    },
+    {
+      "symbol": "TSLA",
+      "name": "Tesla Inc",
+      "qty": "1.2254",
+      "value": "500.67"
     },
     {
       "symbol": "NVDA",
       "name": "NVIDIA Corp",
-      "qty": "17.4",
-      "value": "3,217.09"
+      "qty": "0.734",
+      "value": "135.71"
     }
   ],
   "chart_data": [
@@ -759,10 +771,26 @@
     {
       "date": "2026-02-23",
       "value": 1.25
+    },
+    {
+      "date": "2026-02-24",
+      "value": 0.9014
+    },
+    {
+      "date": "2026-02-25",
+      "value": 0.9114
+    },
+    {
+      "date": "2026-02-26",
+      "value": 0.9043
+    },
+    {
+      "date": "2026-02-27",
+      "value": 0.9043
     }
   ],
-  "total_balance": "5,284.83",
-  "last_updated": "2026-02-27 10:10:46",
+  "total_balance": "3,763.69",
+  "last_updated": "2026-02-27 10:16:44",
   "insights": [
     {
       "type": "opportunity",
@@ -772,7 +800,7 @@
     {
       "type": "neutral",
       "asset": "Portfolio",
-      "text": "7-Day tracking NAV shift stands at +2.46%."
+      "text": "7-Day tracking NAV shift stands at -28.23%."
     }
   ],
   "performance": {
