@@ -1,0 +1,22 @@
+name: Real 12-Hour Stress Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stress-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 720 # Will request 12 hours, but GitHub free runners cap out at 360 mins (6 hours)
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install requests
+      
+      - name: Run Real Stress Test
+        run: python script_real_stress_test.py
