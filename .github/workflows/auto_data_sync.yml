@@ -1,53 +1,44 @@
 name: Auto Data Sync
 
 on:
-  schedule:
-    - cron: '0 */6 * * *' # Run every 6 hours
-  workflow_dispatch:      # Allow manual trigger
+  push:
+    branches: [main]
+    paths:
+      - 'public/data.json'
+      - 'src/data.json'
+      - 'assets.xlsx'
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: auto-data-sync
   cancel-in-progress: true
 
+# This workflow no longer runs extract_data.py on the cloud.
+# Pipeline execution (data sync + AI analysis + Telegram) is handled
+# locally by Nanobot Cron (see ~/.nanobot/cron/jobs.json).
+#
+# This workflow exists only to trigger the deploy-pages workflow
+# when data files change on main.
 jobs:
-  sync_and_deploy:
+  verify-data:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: main
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          
+
       - name: Install dependencies
         run: pip install -r requirements.txt
-        
-      - name: Process Local Data
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
-          GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
-          GLM_BASE_URL: ${{ secrets.GLM_BASE_URL }}
-          GLM_MODEL: ${{ secrets.GLM_MODEL }}
-        run: python src/extract_data.py
 
-      - name: Validate extraction output
+      - name: Validate data.json schema
         run: python src/extract_data_test.py
-        
-      - name: Commit and Push Changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout main
-          git add assets.xlsx src/data.json public/data.json
-          git diff --cached --quiet && echo "No changes to commit" && exit 0
-          git commit -m "chore: process local assets.xlsx updates"
-          git push origin HEAD:main
+
+      - name: Validate regression tests
+        run: python src/backfill_regression_test.py
