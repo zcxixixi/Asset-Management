@@ -14,6 +14,7 @@ import json
 import os
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List
 
 import pandas as pd
@@ -33,7 +34,7 @@ except Exception:  # pragma: no cover
     OpenAI = None
 
 INPUT_PATH = "assets.xlsx"
-OUTPUT_PATH = "src/data.json"
+OUTPUT_PATHS = ["src/data.json", "public/data.json"]
 REQUIRED_HOLDINGS_COLUMNS = {"symbol", "name", "quantity"}
 REQUIRED_DAILY_COLUMNS = {"date", "cash_usd", "gold_usd", "stocks_usd", "total_usd", "nav", "note"}
 MAX_NEWS_ITEMS = 8
@@ -84,34 +85,60 @@ def format_asset_label(name: str, symbol: str) -> str:
     return normalize_asset_label(name)
 
 
-def get_realtime_price(symbol: str, mock_date: datetime = None) -> float:
+def get_realtime_price(symbol: str, mock_date: datetime | None = None, fallback_price: float = 0.0) -> float:
     if symbol.upper() == "CASH":
         return 1.0
 
     yf_symbol = to_yf_symbol(symbol)
-    try:
-        ticker = yf.Ticker(yf_symbol)
-        
-        if mock_date:
-            end_date = mock_date + pd.Timedelta(days=1)
-            start_date = mock_date - pd.Timedelta(days=5)
-            history = ticker.history(start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
+    last_error: Exception | None = None
+    for _ in range(2):
+        try:
+            ticker = yf.Ticker(yf_symbol)
+            if mock_date:
+                end_date = mock_date + pd.Timedelta(days=1)
+                start_date = mock_date - pd.Timedelta(days=5)
+                history = ticker.history(
+                    start=start_date.strftime("%Y-%m-%d"),
+                    end=end_date.strftime("%Y-%m-%d"),
+                )
+                if not history.empty:
+                    close_series = history["Close"].dropna()
+                    if not close_series.empty:
+                        return float(close_series.iloc[-1])
+
+            fast_info = ticker.fast_info
+            last_price = fast_info.get("last_price") if hasattr(fast_info, "get") else fast_info["last_price"]
+            if last_price and last_price > 0:
+                return float(last_price)
+
+            history = ticker.history(period="5d")
             if not history.empty:
-                return float(history["Close"].dropna().iloc[-1])
-            
-        fast_info = ticker.fast_info
-        last_price = fast_info.get("last_price") if hasattr(fast_info, "get") else fast_info["last_price"]
-        if last_price and last_price > 0:
-            return float(last_price)
+                close_series = history["Close"].dropna()
+                if not close_series.empty:
+                    return float(close_series.iloc[-1])
 
-        history = ticker.history(period="5d")
-        if not history.empty:
-            return float(history["Close"].dropna().iloc[-1])
+            raise ValueError(f"No valid market price for {yf_symbol}")
+        except Exception as exc:
+            last_error = exc
 
-        raise ValueError(f"No valid market price for {yf_symbol}")
-    except Exception as exc:
-        print(f"Warning: Failed to fetch {symbol} ({yf_symbol}): {exc}")
-        return 0.0
+    if fallback_price > 0:
+        print(
+            f"Warning: Failed to fetch {symbol} ({yf_symbol}); "
+            f"using fallback workbook price {fallback_price:.4f}. Error: {last_error}"
+        )
+        return float(fallback_price)
+
+    print(f"Warning: Failed to fetch {symbol} ({yf_symbol}): {last_error}")
+    return 0.0
+
+
+def write_json_outputs(payload: Dict[str, Any]) -> None:
+    for output in OUTPUT_PATHS:
+        output_path = Path(output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with output_path.open("w", encoding="utf-8") as file:
+            json.dump(payload, file, indent=2, ensure_ascii=False)
+        print(f"Updated {output_path}")
 
 
 def parse_published_at(raw_value: Any) -> str:
@@ -560,8 +587,15 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
         symbol = str(row.get("symbol", "CASH")).strip()
         name = str(row.get("name", "Unknown")).strip()
         qty = safe_float(row.get("quantity"))
+        fallback_price = safe_float(row.get("price_usd"))
+        if fallback_price <= 0 and qty > 0:
+            fallback_price = safe_float(row.get("market_value_usd")) / qty
 
-        price = get_realtime_price(symbol, mock_date=sync_now if mock_date_str else None)
+        price = get_realtime_price(
+            symbol,
+            mock_date=sync_now if mock_date_str else None,
+            fallback_price=fallback_price,
+        )
         market_value = qty * price
         total_balance += market_value
 
@@ -677,10 +711,12 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
         "performance": {"1d": "Live", "summary": "Broker Export Integration"},
     }
 
-    with open(OUTPUT_PATH, "w", encoding="utf-8") as file:
-        json.dump(response, file, indent=2, ensure_ascii=False)
+    write_json_outputs(response)
 
-    print(f"\n✅ Pushed synchronized data to {OUTPUT_PATH}. Total NAV: ${total_balance:,.2f}")
+    print(
+        f"\n✅ Pushed synchronized data to {', '.join(OUTPUT_PATHS)}. "
+        f"Total NAV: ${total_balance:,.2f}"
+    )
     return response
 
 
