@@ -8,15 +8,18 @@ TIME_OF_DAY="${1:-test}"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG="$DIR/backups/cron_$(date +%Y%m%d_%H%M).log"
 
+# Load secrets from .env (gitignored)
+if [ -f "$DIR/.env" ]; then
+  set -a
+  source "$DIR/.env"
+  set +a
+else
+  echo "ERROR: .env file not found at $DIR/.env" >&2
+  exit 1
+fi
+
 # Activate venv
 source /Users/kaijimima1234/Desktop/nanobot/venv/bin/activate
-
-# API keys
-export OPENAI_API_KEY="REDACTED_API_KEY"
-export OPENAI_BASE_URL="http://127.0.0.1:8045/v1"
-export OPENAI_MODEL="gemini-3-flash"
-export TELEGRAM_BOT_TOKEN="REDACTED_TOKEN"
-export TELEGRAM_CHAT_ID="8008838739"
 
 cd "$DIR"
 
