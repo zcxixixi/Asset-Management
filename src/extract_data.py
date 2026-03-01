@@ -3,18 +3,23 @@
 Real-Time Asset Synchronization Script
 - Reads holdings from assets.xlsx
 - Calculates live portfolio values via yfinance
-- Builds chart/performance payload
+- Synchronizes workbook tables (Holdings/Daily/Chart/Exec) with rigorous checks
+- Builds JSON payload for web UI
 - Generates personalized advisor briefing from latest news + optional LLM
 """
+
+from __future__ import annotations
+
 import json
 import os
 import sys
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import pandas as pd
 import yfinance as yf
-from openpyxl import load_workbook
+
+from workbook_sync import WorkbookSyncError, normalize_date_str, sync_workbook
 
 try:
     from openai import OpenAI
@@ -24,7 +29,7 @@ except Exception:  # pragma: no cover
 INPUT_PATH = "assets.xlsx"
 OUTPUT_PATH = "src/data.json"
 REQUIRED_HOLDINGS_COLUMNS = {"symbol", "name", "quantity"}
-REQUIRED_DAILY_COLUMNS = {"date", "nav"}
+REQUIRED_DAILY_COLUMNS = {"date", "cash_usd", "gold_usd", "stocks_usd", "total_usd", "nav", "note"}
 MAX_NEWS_ITEMS = 8
 
 
@@ -76,6 +81,7 @@ def format_asset_label(name: str, symbol: str) -> str:
 def get_realtime_price(symbol: str) -> float:
     if symbol.upper() == "CASH":
         return 1.0
+
     yf_symbol = to_yf_symbol(symbol)
     try:
         ticker = yf.Ticker(yf_symbol)
@@ -87,6 +93,7 @@ def get_realtime_price(symbol: str) -> float:
         history = ticker.history(period="5d")
         if not history.empty:
             return float(history["Close"].dropna().iloc[-1])
+
         raise ValueError(f"No valid market price for {yf_symbol}")
     except Exception as exc:
         print(f"Warning: Failed to fetch {symbol} ({yf_symbol}): {exc}")
@@ -170,7 +177,6 @@ def format_pct(value: float) -> str:
 
 def build_rule_based_briefing(
     assets: List[Dict[str, str]],
-    holdings: List[Dict[str, str]],
     perf_7d: float,
     news_items: List[Dict[str, str]],
 ) -> Dict[str, Any]:
@@ -192,66 +198,39 @@ def build_rule_based_briefing(
         "Portfolio remains diversified, but near-term volatility can be elevated around headline-heavy sessions."
     )
 
-    suggestions: List[Dict[str, str]] = []
-
-    if cash_pct >= 20:
-        suggestions.append(
-            {
-                "asset": "Cash USD",
-                "action": "Deploy gradually",
-                "rationale": "Cash allocation is relatively high. Consider phased entries to reduce timing risk instead of one-time deployment.",
-            }
-        )
-    else:
-        suggestions.append(
-            {
-                "asset": "Cash USD",
-                "action": "Maintain reserve",
-                "rationale": "Cash buffer is moderate; keeping some dry powder supports flexibility during volatility spikes.",
-            }
-        )
-
-    if perf_7d < -1:
-        suggestions.append(
-            {
-                "asset": "US Stocks",
-                "action": "Rebalance carefully",
-                "rationale": "Recent NAV drawdown suggests tightening risk controls and avoiding oversized directional bets.",
-            }
-        )
-    else:
-        suggestions.append(
-            {
-                "asset": "US Stocks",
-                "action": "Hold core exposure",
-                "rationale": "Momentum is not deteriorating sharply. Keep core equity allocation while reviewing valuation-sensitive names.",
-            }
-        )
+    suggestions: List[Dict[str, str]] = [
+        {
+            "asset": "Cash USD",
+            "action": "Maintain reserve" if cash_pct < 20 else "Deploy gradually",
+            "rationale": "Use staged allocation to control timing risk and keep flexibility.",
+        },
+        {
+            "asset": "US Stocks",
+            "action": "Hold core exposure" if perf_7d >= -1 else "Rebalance carefully",
+            "rationale": "Keep position sizing disciplined and avoid overreaction to single headlines.",
+        },
+    ]
 
     if gold_pct > 10:
         suggestions.append(
             {
                 "asset": "Gold USD",
                 "action": "Keep hedge",
-                "rationale": "Gold weight already provides macro hedge coverage against rate and risk-off uncertainty.",
+                "rationale": "Gold weight helps absorb macro and risk-off shocks.",
             }
         )
-
-    risks = [
-        "Short-term market reactions to macro headlines can exceed fundamentals.",
-        "Single-name concentration risk can amplify drawdowns.",
-    ]
-
-    verdict = "Keep diversified core positions and adjust incrementally, not aggressively."
 
     return {
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "source": "rule-based",
         "headline": headline,
         "macro_summary": macro_summary,
-        "verdict": verdict,
+        "verdict": "Keep diversified core positions and adjust incrementally, not aggressively.",
         "suggestions": suggestions[:4],
-        "risks": risks,
+        "risks": [
+            "Short-term market reactions to macro headlines can exceed fundamentals.",
+            "Single-name concentration risk can amplify drawdowns.",
+        ],
         "news_context": news_items,
         "disclaimer": "Informational only, not financial advice.",
     }
@@ -280,9 +259,8 @@ def sanitize_briefing(raw: Any, fallback: Dict[str, Any], news_items: List[Dict[
         asset = normalize_asset_label(item.get("asset") or "Portfolio")
         action = str(item.get("action") or "Hold").strip()
         rationale = str(item.get("rationale") or "No rationale provided.").strip()
-        if not rationale:
-            continue
-        suggestions.append({"asset": asset, "action": action, "rationale": rationale})
+        if rationale:
+            suggestions.append({"asset": asset, "action": action, "rationale": rationale})
 
     if not suggestions:
         suggestions = fallback["suggestions"]
@@ -306,13 +284,14 @@ def generate_llm_briefing(
     perf_7d: float,
     news_items: List[Dict[str, str]],
 ) -> Dict[str, Any]:
-    fallback = build_rule_based_briefing(assets, holdings, perf_7d, news_items)
+    fallback = build_rule_based_briefing(assets, perf_7d, news_items)
 
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    api_key = os.getenv("GLM_API_KEY") or os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key or OpenAI is None:
         return fallback
 
-    model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini").strip() or "gpt-4.1-mini"
+    base_url = os.getenv("GLM_BASE_URL")
+    model = os.getenv("GLM_MODEL") or os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
 
     payload = {
         "portfolio_assets": assets,
@@ -323,14 +302,13 @@ def generate_llm_briefing(
 
     system_prompt = (
         "You are a cautious portfolio analyst. "
-        "Use only the provided portfolio and news context. "
-        "Return strict JSON with keys: headline, macro_summary, verdict, suggestions, risks. "
-        "suggestions must be an array of objects with keys: asset, action, rationale. "
-        "Keep language concise, concrete, and risk-aware. Do not promise returns."
+        "Use only provided data and return strict JSON with keys: "
+        "headline, macro_summary, verdict, suggestions, risks. "
+        "suggestions items must include: asset, action, rationale."
     )
 
     try:
-        client = OpenAI(api_key=api_key)
+        client = OpenAI(api_key=api_key, base_url=base_url) if base_url else OpenAI(api_key=api_key)
         completion = client.chat.completions.create(
             model=model,
             temperature=0.2,
@@ -352,7 +330,7 @@ def suggestion_to_insight_type(action: str) -> str:
     action_lower = str(action).lower()
     if any(word in action_lower for word in ["reduce", "trim", "rebalance", "tighten", "hedge", "defensive"]):
         return "warning"
-    if any(word in action_lower for word in ["add", "deploy", "accumulate", "hold", "increase", "keep"]):
+    if any(word in action_lower for word in ["add", "deploy", "accumulate", "hold", "increase", "keep", "maintain"]):
         return "opportunity"
     return "neutral"
 
@@ -367,11 +345,8 @@ def briefing_to_insights(briefing: Dict[str, Any]) -> List[Dict[str, str]]:
         asset = normalize_asset_label(item.get("asset") or "Portfolio")
         action = str(item.get("action") or "").strip()
         rationale = str(item.get("rationale") or "").strip()
-        if not rationale:
-            continue
-        insight_type = suggestion_to_insight_type(action)
-        text = rationale
-        insights.append({"type": insight_type, "asset": asset, "text": text})
+        if rationale:
+            insights.append({"type": suggestion_to_insight_type(action), "asset": asset, "text": rationale})
 
     if not insights:
         insights = [
@@ -384,70 +359,6 @@ def briefing_to_insights(briefing: Dict[str, Any]) -> List[Dict[str, str]]:
     return insights
 
 
-def write_sync_timestamp_to_excel(sync_dt: datetime) -> None:
-    """
-    Keep workbook timestamps aligned with JSON last_updated.
-    Updates:
-    - Holdings.timestamp for active holding rows
-    - Exec!B2 (data time)
-    - Exec cell right to label "更新时间" when present
-    """
-    if not os.path.exists(INPUT_PATH):
-        return
-
-    try:
-        workbook = load_workbook(INPUT_PATH)
-        updated = False
-        default_fmt = "yyyy-mm-dd hh:mm:ss"
-
-        if "Holdings" in workbook.sheetnames:
-            ws = workbook["Holdings"]
-            header_map = {
-                str(ws.cell(row=1, column=col).value).strip().lower(): col
-                for col in range(1, ws.max_column + 1)
-            }
-            ts_col = header_map.get("timestamp")
-            symbol_col = header_map.get("symbol")
-            if ts_col and symbol_col:
-                base_fmt = ws.cell(row=2, column=ts_col).number_format or default_fmt
-                for row in range(2, ws.max_row + 1):
-                    symbol = ws.cell(row=row, column=symbol_col).value
-                    if symbol is None or str(symbol).strip() == "":
-                        continue
-                    ts_cell = ws.cell(row=row, column=ts_col)
-                    ts_cell.value = sync_dt
-                    ts_cell.number_format = base_fmt
-                    updated = True
-
-        if "Exec" in workbook.sheetnames:
-            ws = workbook["Exec"]
-            b2 = ws["B2"]
-            b2_fmt = b2.number_format or default_fmt
-            b2.value = sync_dt
-            b2.number_format = b2_fmt
-            updated = True
-
-            found_update_label = False
-            for row in range(1, min(ws.max_row, 40) + 1):
-                for col in range(1, min(ws.max_column, 20) + 1):
-                    value = ws.cell(row=row, column=col).value
-                    if isinstance(value, str) and value.strip() == "更新时间":
-                        target = ws.cell(row=row, column=col + 1)
-                        target.number_format = target.number_format or b2_fmt
-                        target.value = sync_dt
-                        found_update_label = True
-                        updated = True
-                        break
-                if found_update_label:
-                    break
-
-        if updated:
-            workbook.save(INPUT_PATH)
-            print("Updated Excel timestamp fields in assets.xlsx")
-    except Exception as exc:
-        print(f"Warning: Failed to write sync timestamp back to Excel: {exc}")
-
-
 def extract_data() -> Dict[str, Any]:
     if not os.path.exists(INPUT_PATH):
         raise FileNotFoundError(f"{INPUT_PATH} not found in repository root")
@@ -456,14 +367,16 @@ def extract_data() -> Dict[str, Any]:
     df_holdings = pd.read_excel(INPUT_PATH, sheet_name="Holdings")
     df_holdings = df_holdings.dropna(how="all")
     df_holdings.columns = [str(c).strip().lower() for c in df_holdings.columns]
+
     missing_holdings_columns = REQUIRED_HOLDINGS_COLUMNS - set(df_holdings.columns)
     if missing_holdings_columns:
         raise ValueError(f"Holdings sheet missing columns: {sorted(missing_holdings_columns)}")
 
     assets_grouped: Dict[str, float] = {}
     total_balance = 0.0
-    live_holdings: List[Dict[str, str]] = []
     tracked_symbols: List[str] = []
+    holding_updates: List[Dict[str, Any]] = []
+    live_holdings: List[Dict[str, str]] = []
 
     print("\nFetching real-time market data via yfinance...")
     for _, row in df_holdings.iterrows():
@@ -475,23 +388,33 @@ def extract_data() -> Dict[str, Any]:
         qty = safe_float(row.get("quantity"))
 
         price = get_realtime_price(symbol)
-        usd_value = qty * price
-        total_balance += usd_value
+        market_value = qty * price
+        total_balance += market_value
 
-        print(f"[{symbol}] {qty} units @ ${price:,.2f} = ${usd_value:,.2f}")
+        print(f"[{symbol}] {qty} units @ ${price:,.2f} = ${market_value:,.2f}")
 
-        category_label = format_asset_label(name, symbol)
-        assets_grouped[category_label] = assets_grouped.get(category_label, 0.0) + usd_value
+        category = format_asset_label(name, symbol)
+        assets_grouped[category] = assets_grouped.get(category, 0.0) + market_value
 
-        if symbol.upper() not in ("CASH", "USD") and usd_value > 0:
+        holding_updates.append(
+            {
+                "symbol": symbol.strip().upper(),
+                "quantity": qty,
+                "price_usd": price,
+                "market_value_usd": market_value,
+            }
+        )
+
+        if symbol.upper() not in {"CASH", "USD"} and market_value > 0:
             live_holdings.append(
                 {
                     "symbol": symbol,
                     "name": name,
                     "qty": str(qty) if qty != int(qty) else str(int(qty)),
-                    "value": f"{usd_value:,.2f}",
+                    "value": f"{market_value:,.2f}",
                 }
             )
+
         tracked_symbols.append(symbol)
 
     final_assets = [
@@ -500,24 +423,44 @@ def extract_data() -> Dict[str, Any]:
         {"label": "US Stocks", "value": f"{assets_grouped.get('US Stocks', 0.0):,.2f}"},
     ]
 
+    sync_now = datetime.now()
+    try:
+        meta = sync_workbook(
+            workbook_path=INPUT_PATH,
+            sync_dt=sync_now,
+            holding_updates=holding_updates,
+            assets_grouped=assets_grouped,
+            total_balance=total_balance,
+        )
+        print(
+            f"Workbook sync OK. last_daily_date={meta['last_daily_date']} "
+            f"daily_count={meta['daily_count']} backup={meta['backup_path']}"
+        )
+    except WorkbookSyncError as exc:
+        raise RuntimeError(f"Workbook sync failed: {exc}") from exc
+
     df_daily = pd.read_excel(INPUT_PATH, sheet_name="Daily")
     df_daily = df_daily.dropna(how="all", axis=1).dropna(how="all", axis=0)
-    df_daily.columns = df_daily.columns.astype(str).str.strip().str.lower()
+    df_daily.columns = [str(c).strip().lower() for c in df_daily.columns]
     missing_daily_columns = REQUIRED_DAILY_COLUMNS - set(df_daily.columns)
     if missing_daily_columns:
         raise ValueError(f"Daily sheet missing columns: {sorted(missing_daily_columns)}")
 
-    nav_series = df_daily["nav"].apply(safe_float).dropna()
+    df_daily["date"] = df_daily["date"].apply(normalize_date_str)
+    df_daily["nav"] = df_daily["nav"].apply(safe_float)
+    df_daily = df_daily[df_daily["date"] != ""].copy()
+
+    nav_series = df_daily["nav"].dropna()
     if nav_series.empty:
         raise ValueError("Daily.nav has no usable values")
 
-    current_nav = nav_series.iloc[-1]
-    nav_7d_ago = nav_series.iloc[-8] if len(nav_series) >= 8 else nav_series.iloc[0]
+    current_nav = float(nav_series.iloc[-1])
+    nav_7d_ago = float(nav_series.iloc[-8]) if len(nav_series) >= 8 else float(nav_series.iloc[0])
     perf_7d = ((current_nav / nav_7d_ago) - 1) * 100 if nav_7d_ago > 0 else 0.0
 
     chart_data = [
-        {"date": str(row["date"]).split(" ")[0], "value": safe_float(row["nav"])}
-        for _, row in df_daily.iterrows()
+        {"date": str(row.date), "value": float(row.nav)}
+        for row in df_daily[["date", "nav"]].itertuples(index=False)
     ]
     if not chart_data:
         raise ValueError("chart_data generated empty from Daily sheet")
@@ -530,16 +473,12 @@ def extract_data() -> Dict[str, Any]:
     advisor_briefing = generate_llm_briefing(final_assets, live_holdings, perf_7d, news_items)
     insights = briefing_to_insights(advisor_briefing)
 
-    sync_now = datetime.now()
-    last_updated_text = sync_now.strftime("%Y-%m-%d %H:%M:%S")
-    write_sync_timestamp_to_excel(sync_now)
-
     response = {
         "assets": final_assets,
         "holdings": live_holdings,
         "chart_data": chart_data,
         "total_balance": f"{total_balance:,.2f}",
-        "last_updated": last_updated_text,
+        "last_updated": sync_now.strftime("%Y-%m-%d %H:%M:%S"),
         "insights": insights,
         "advisor_briefing": advisor_briefing,
         "performance": {"1d": "Live", "summary": "Broker Export Integration"},
@@ -548,7 +487,7 @@ def extract_data() -> Dict[str, Any]:
     with open(OUTPUT_PATH, "w", encoding="utf-8") as file:
         json.dump(response, file, indent=2, ensure_ascii=False)
 
-    print(f"\n✅ Pushed live calculated data to {OUTPUT_PATH}. Total NAV: ${total_balance:,.2f}")
+    print(f"\n✅ Pushed synchronized data to {OUTPUT_PATH}. Total NAV: ${total_balance:,.2f}")
     return response
 
 
