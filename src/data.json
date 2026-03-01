@@ -804,7 +804,7 @@
     }
   ],
   "total_balance": "5,276.50",
-  "last_updated": "2026-03-01 11:10:48",
+  "last_updated": "2026-03-01 12:07:06",
   "insights": [
     {
       "type": "opportunity",
@@ -823,9 +823,9 @@
     }
   ],
   "advisor_briefing": {
-    "generated_at": "2026-03-01 11:10:51",
+    "generated_at": "2026-03-01 12:07:12",
     "source": "rule-based",
-    "headline": "Portfolio Pulse: Balanced but Event-Sensitive",
+    "headline": "Portfolio Pulse: NVDA.US drives latest market narrative",
     "macro_summary": "7-day NAV move is -0.18%. Current allocation is Cash 10.8%, Gold 28.5%, US Stocks 60.6%. Portfolio remains diversified, but near-term volatility can be elevated around headline-heavy sessions.",
     "verdict": "Keep diversified core positions and adjust incrementally, not aggressively.",
     "suggestions": [
@@ -849,9 +849,318 @@
       "Short-term market reactions to macro headlines can exceed fundamentals.",
       "Single-name concentration risk can amplify drawdowns."
     ],
-    "news_context": [],
+    "news_context": [
+      {
+        "symbol": "NVDA.US",
+        "title": "How Sovereign AI Projects Could Reframe The NVIDIA Investment Story",
+        "publisher": "Simply Wall St.",
+        "published_at": "2026-03-01 03:09:34 UTC",
+        "url": "https://finance.yahoo.com/news/sovereign-ai-projects-could-reframe-030934351.html",
+        "summary": "NVIDIA (NasdaqGS:NVDA) is expanding its role in sovereign-scale AI, with new gigawatt-level AI factory projects in India aimed at building production-grade national AI capabilities. The company is deepening ties with telecom partners through Open RAN and spectrum intelligence projects, using its platforms to support mobile network modernization. NVIDIA hardware and software are being adopted in enterprise AI data stacks and confidential compute deployments in North America and Australia,..."
+      },
+      {
+        "symbol": "NVDA.US",
+        "title": "Bitcoin Is Headed to $500,000. This Wall Street Analyst Explains Why.",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 03:05:00 UTC",
+        "url": "https://finance.yahoo.com/news/bitcoin-headed-500-000-wall-030500369.html",
+        "summary": "Bitcoin investors may soon forget the recent correction."
+      },
+      {
+        "symbol": "GOLD.CN",
+        "title": "Bank of America revamps gold stock price target for 2026",
+        "publisher": "TheStreet",
+        "published_at": "2026-03-01 03:03:00 UTC",
+        "url": "https://finance.yahoo.com/news/bank-america-revamps-gold-stock-030300202.html",
+        "summary": "Gold has had a wild few weeks, but Bank of America is not flinching. The bank just reset its 12-month gold price target to $6,000 per ounce, even as the metal navigates some of the most turbulent policy headlines of the year. Bank of America analysts cited policy uncertainty around Federal Reserve ..."
+      },
+      {
+        "symbol": "NVDA.US",
+        "title": "Warren Buffett's Final $373 Billion Warning Sent Shockwaves Through Wall Street",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 02:41:00 UTC",
+        "url": "https://finance.yahoo.com/news/warren-buffetts-final-373-billion-024100554.html",
+        "summary": "The Oracle of Omaha's actions leading up to his retirement make clear that the time to be fearful when others are greedy is here."
+      },
+      {
+        "symbol": "GOLD.CN",
+        "title": "Why Orla Mining (TSX:OLA) Is Up 15.2% After Huge Camino Rojo Underground PEA Reveal",
+        "publisher": "Simply Wall St.",
+        "published_at": "2026-03-01 02:11:28 UTC",
+        "url": "https://finance.yahoo.com/news/why-orla-mining-tsx-ola-021128593.html",
+        "summary": "In February 2026, Orla Mining announced positive Preliminary Economic Assessment results for a stand-alone underground project beneath its existing Camino Rojo open pit mine in Mexico, highlighting an after-tax NPV5% of US$3.30 billion and a very large IRR at a US$5,000/oz gold price. The study points to a capital-efficient, potentially multi-decade underground operation with over 4 million ounces gold equivalent in measured and indicated resources and a phased de-risking program through..."
+      },
+      {
+        "symbol": "GOLD.CN",
+        "title": "Frontline (NYSE:FRO) Valuation Check After Q4 Profit Surge And Fleet Renewal Moves",
+        "publisher": "Simply Wall St.",
+        "published_at": "2026-03-01 02:10:25 UTC",
+        "url": "https://finance.yahoo.com/news/frontline-nyse-fro-valuation-check-021025831.html",
+        "summary": "Frontline (FRO) is back in focus after reporting fourth quarter 2025 earnings that showed US$624.5 million in revenue and US$227.9 million in net income, along with ongoing fleet renewal and boardroom changes. See our latest analysis for Frontline. The earnings surprise and record dividend have arrived alongside powerful momentum, with a 35.25% 1 month share price return and an 84.40% year to date share price return feeding into a very large 5 year total shareholder return. Taken together,..."
+      },
+      {
+        "symbol": "NVDA.US",
+        "title": "Could Buying IonQ Stock Today Set You Up for Life?",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 01:40:00 UTC",
+        "url": "https://finance.yahoo.com/news/could-buying-ionq-stock-today-014000523.html",
+        "summary": "IonQ is starting small but will likely face growth obstacles along the way."
+      },
+      {
+        "symbol": "NVDA.US",
+        "title": "The Hard Part of Nike's Turnaround Is Just Beginning",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 01:25:00 UTC",
+        "url": "https://finance.yahoo.com/news/hard-part-nikes-turnaround-just-012500276.html",
+        "summary": "Nike may have stopped sliding, but the more challenging part of the recovery is just beginning."
+      }
+    ],
+    "global_context": [
+      {
+        "symbol": "MACRO",
+        "title": "Mining stocks are the new market darlings, fueled by geopolitical risks and AI demand",
+        "publisher": "Yahoo Finance",
+        "published_at": "2026-02-28 17:30:05 UTC",
+        "url": "https://finance.yahoo.com/news/mining-stocks-are-the-new-market-darlings-fueled-by-geopolitical-risks-and-ai-demand-173005780.html",
+        "summary": "Mining stocks are rising as the sector becomes a strategic long-term asset for investors."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Dow Jones Futures To React To U.S.-Israeli Attacks On Iran; Khamenei Killed",
+        "publisher": "Investor's Business Daily",
+        "published_at": "2026-03-01 03:44:34 UTC",
+        "url": "",
+        "summary": "Iran confirmed Ayatollah Khamenei's death as U.S.-Israeli attacks continue. How will Dow Jones futures and oil react?"
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Warren Buffett's Final $373 Billion Warning Sent Shockwaves Through Wall Street",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 02:41:00 UTC",
+        "url": "https://finance.yahoo.com/news/warren-buffetts-final-373-billion-024100554.html",
+        "summary": "The Oracle of Omaha's actions leading up to his retirement make clear that the time to be fearful when others are greedy is here."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "What the Attacks on Iran, Khamenei’s Death Mean for Oil and Stocks",
+        "publisher": "Barrons.com",
+        "published_at": "2026-03-01 01:57:00 UTC",
+        "url": "",
+        "summary": "A closure of the Strait of Hormuz is likely to cause widespread disruption in energy markets and shipping. What to know."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Insight Holdings Trims AppFolio as Property Software Faces a More Selective SaaS Market",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 01:22:43 UTC",
+        "url": "https://finance.yahoo.com/news/insight-holdings-trims-appfolio-property-012243195.html",
+        "summary": "Insight Holdings reduced its stake in AppFolio, a property management software provider whose shares have lagged the broader market over the past year. With real estate transaction activity slower and SaaS valuations more selective, investors are reassessing how much growth is tied to units under management versus higher-margin payments and services."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Excluding the \"Magnificent Seven\" Stocks, Here's How the Market Is Performing in 2026",
+        "publisher": "Motley Fool",
+        "published_at": "2026-02-28 22:23:00 UTC",
+        "url": "https://finance.yahoo.com/news/excluding-magnificent-seven-stocks-heres-222300285.html",
+        "summary": "There's a major market rotation going on from big tech to the rest of the market."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "River Road Loads Up on ATR With 917,000 Shares in New Position",
+        "publisher": "Motley Fool",
+        "published_at": "2026-02-28 21:47:10 UTC",
+        "url": "https://finance.yahoo.com/news/river-road-loads-atr-917-214710079.html",
+        "summary": "AptarGroup delivers proprietary dispensing and sealing solutions to global healthcare, beauty, and consumer markets."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Cross Staff Loads Up on 289,000 Shares of AKRE",
+        "publisher": "Motley Fool",
+        "published_at": "2026-02-28 20:50:47 UTC",
+        "url": "https://finance.yahoo.com/news/cross-staff-loads-289-000-205047660.html",
+        "summary": "This asset management firm targets high-quality U.S. equities through a disciplined, valuation-driven investment approach."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Public Storage (PSA): A Bull Case Theory",
+        "publisher": "Insider Monkey",
+        "published_at": "2026-02-28 18:52:41 UTC",
+        "url": "https://finance.yahoo.com/news/public-storage-psa-bull-case-185241721.html",
+        "summary": "We came across a bullish thesis on Public Storage on R. Dennis’s Substack by OppCost. In this article, we will summarize the bulls’ thesis on PSA. Public Storage’s share was trading at $304.11 as of February 24th. PSA’s trailing and forward P/E were 31.53 and 28.41 respectively according to Yahoo Finance. Public Storage, a member of the S&P 500, is a REIT that primarily acquires, develops, owns, and operates self-storage facilities. PSA has reinforced its leadership in the […]"
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Iran May Close the Strait of Hormuz. Why Shipping Stocks Would Benefit.",
+        "publisher": "Barrons.com",
+        "published_at": "2026-02-28 18:27:00 UTC",
+        "url": "",
+        "summary": "The U.S-Iran conflict could cause rates to rise, but shares of Frontline, DHT Holdings, and others have already rallied."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Mid-Cap ETFs in a High Momentum: Here's Why",
+        "publisher": "Zacks",
+        "published_at": "2026-02-27 17:00:00 UTC",
+        "url": "https://finance.yahoo.com/news/mid-cap-etfs-high-momentum-170000893.html",
+        "summary": "Mid-cap ETFs are gaining momentum, balancing growth and stability as tariff risks and rate outlook weigh on large and small caps. Here's why investors are watching."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Exchange-Traded Funds, Equity Futures Lower Pre-Bell Friday Amid Inflation Data Release",
+        "publisher": "MT Newswires",
+        "published_at": "2026-02-27 13:55:23 UTC",
+        "url": "https://finance.yahoo.com/news/exchange-traded-funds-equity-futures-135523252.html",
+        "summary": "The broad market exchange-traded fund SPDR S&P 500 ETF Trust (SPY) was down 0.7% and the actively tr"
+      },
+      {
+        "symbol": "MACRO",
+        "title": "11 S&P 500 Stocks Blow Away Analysts' Quarterly Estimates",
+        "publisher": "Investor's Business Daily",
+        "published_at": "2026-02-27 12:24:28 UTC",
+        "url": "",
+        "summary": "Now that fourth quarter earnings season is wrapping up, it's clear which S&P 500 stocks overdelivered."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Scott Bessent Sidesteps $134 Billion Tariff Refund Question, Calls Corporate Lawsuits 'Ultimate Corporate Welfare'",
+        "publisher": "Benzinga",
+        "published_at": "2026-02-27 01:30:29 UTC",
+        "url": "https://finance.yahoo.com/news/scott-bessent-sidesteps-134-billion-013029260.html",
+        "summary": "Treasury Secretary Scott Bessent refused to commit to issuing $134 billion in potential tariff refunds during a post-State of the Union interview, instead framing corporate demands for repayment as a form of government handout. The Refund Standoff Following President Donald Trump's 2026 State of the Union address, Bessent addressed the growing legal and financial fallout from a recent Supreme Court ruling that restricted the administration's tariff authorities. When pressed by NBC News' Kristen"
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Csenge Advisory Group Increased Its LMBS Stake in Q4",
+        "publisher": "Motley Fool",
+        "published_at": "2026-02-26 20:27:39 UTC",
+        "url": "https://finance.yahoo.com/news/csenge-advisory-group-increased-lmbs-202739991.html",
+        "summary": "First Trust Low Duration Opportunities ETF targets income and stability through mortgage-backed securities in the fixed income space."
+      }
+    ],
     "disclaimer": "Informational only, not financial advice."
   },
+  "daily_news": [
+    {
+      "symbol": "MACRO",
+      "title": "Mining stocks are the new market darlings, fueled by geopolitical risks and AI demand",
+      "publisher": "Yahoo Finance",
+      "published_at": "2026-02-28 17:30:05 UTC",
+      "url": "https://finance.yahoo.com/news/mining-stocks-are-the-new-market-darlings-fueled-by-geopolitical-risks-and-ai-demand-173005780.html",
+      "summary": "Mining stocks are rising as the sector becomes a strategic long-term asset for investors."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Dow Jones Futures To React To U.S.-Israeli Attacks On Iran; Khamenei Killed",
+      "publisher": "Investor's Business Daily",
+      "published_at": "2026-03-01 03:44:34 UTC",
+      "url": "",
+      "summary": "Iran confirmed Ayatollah Khamenei's death as U.S.-Israeli attacks continue. How will Dow Jones futures and oil react?"
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Warren Buffett's Final $373 Billion Warning Sent Shockwaves Through Wall Street",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01 02:41:00 UTC",
+      "url": "https://finance.yahoo.com/news/warren-buffetts-final-373-billion-024100554.html",
+      "summary": "The Oracle of Omaha's actions leading up to his retirement make clear that the time to be fearful when others are greedy is here."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "What the Attacks on Iran, Khamenei’s Death Mean for Oil and Stocks",
+      "publisher": "Barrons.com",
+      "published_at": "2026-03-01 01:57:00 UTC",
+      "url": "",
+      "summary": "A closure of the Strait of Hormuz is likely to cause widespread disruption in energy markets and shipping. What to know."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Insight Holdings Trims AppFolio as Property Software Faces a More Selective SaaS Market",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01 01:22:43 UTC",
+      "url": "https://finance.yahoo.com/news/insight-holdings-trims-appfolio-property-012243195.html",
+      "summary": "Insight Holdings reduced its stake in AppFolio, a property management software provider whose shares have lagged the broader market over the past year. With real estate transaction activity slower and SaaS valuations more selective, investors are reassessing how much growth is tied to units under management versus higher-margin payments and services."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Excluding the \"Magnificent Seven\" Stocks, Here's How the Market Is Performing in 2026",
+      "publisher": "Motley Fool",
+      "published_at": "2026-02-28 22:23:00 UTC",
+      "url": "https://finance.yahoo.com/news/excluding-magnificent-seven-stocks-heres-222300285.html",
+      "summary": "There's a major market rotation going on from big tech to the rest of the market."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "River Road Loads Up on ATR With 917,000 Shares in New Position",
+      "publisher": "Motley Fool",
+      "published_at": "2026-02-28 21:47:10 UTC",
+      "url": "https://finance.yahoo.com/news/river-road-loads-atr-917-214710079.html",
+      "summary": "AptarGroup delivers proprietary dispensing and sealing solutions to global healthcare, beauty, and consumer markets."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Cross Staff Loads Up on 289,000 Shares of AKRE",
+      "publisher": "Motley Fool",
+      "published_at": "2026-02-28 20:50:47 UTC",
+      "url": "https://finance.yahoo.com/news/cross-staff-loads-289-000-205047660.html",
+      "summary": "This asset management firm targets high-quality U.S. equities through a disciplined, valuation-driven investment approach."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Public Storage (PSA): A Bull Case Theory",
+      "publisher": "Insider Monkey",
+      "published_at": "2026-02-28 18:52:41 UTC",
+      "url": "https://finance.yahoo.com/news/public-storage-psa-bull-case-185241721.html",
+      "summary": "We came across a bullish thesis on Public Storage on R. Dennis’s Substack by OppCost. In this article, we will summarize the bulls’ thesis on PSA. Public Storage’s share was trading at $304.11 as of February 24th. PSA’s trailing and forward P/E were 31.53 and 28.41 respectively according to Yahoo Finance. Public Storage, a member of the S&P 500, is a REIT that primarily acquires, develops, owns, and operates self-storage facilities. PSA has reinforced its leadership in the […]"
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Iran May Close the Strait of Hormuz. Why Shipping Stocks Would Benefit.",
+      "publisher": "Barrons.com",
+      "published_at": "2026-02-28 18:27:00 UTC",
+      "url": "",
+      "summary": "The U.S-Iran conflict could cause rates to rise, but shares of Frontline, DHT Holdings, and others have already rallied."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Mid-Cap ETFs in a High Momentum: Here's Why",
+      "publisher": "Zacks",
+      "published_at": "2026-02-27 17:00:00 UTC",
+      "url": "https://finance.yahoo.com/news/mid-cap-etfs-high-momentum-170000893.html",
+      "summary": "Mid-cap ETFs are gaining momentum, balancing growth and stability as tariff risks and rate outlook weigh on large and small caps. Here's why investors are watching."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Exchange-Traded Funds, Equity Futures Lower Pre-Bell Friday Amid Inflation Data Release",
+      "publisher": "MT Newswires",
+      "published_at": "2026-02-27 13:55:23 UTC",
+      "url": "https://finance.yahoo.com/news/exchange-traded-funds-equity-futures-135523252.html",
+      "summary": "The broad market exchange-traded fund SPDR S&P 500 ETF Trust (SPY) was down 0.7% and the actively tr"
+    },
+    {
+      "symbol": "MACRO",
+      "title": "11 S&P 500 Stocks Blow Away Analysts' Quarterly Estimates",
+      "publisher": "Investor's Business Daily",
+      "published_at": "2026-02-27 12:24:28 UTC",
+      "url": "",
+      "summary": "Now that fourth quarter earnings season is wrapping up, it's clear which S&P 500 stocks overdelivered."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Scott Bessent Sidesteps $134 Billion Tariff Refund Question, Calls Corporate Lawsuits 'Ultimate Corporate Welfare'",
+      "publisher": "Benzinga",
+      "published_at": "2026-02-27 01:30:29 UTC",
+      "url": "https://finance.yahoo.com/news/scott-bessent-sidesteps-134-billion-013029260.html",
+      "summary": "Treasury Secretary Scott Bessent refused to commit to issuing $134 billion in potential tariff refunds during a post-State of the Union interview, instead framing corporate demands for repayment as a form of government handout. The Refund Standoff Following President Donald Trump's 2026 State of the Union address, Bessent addressed the growing legal and financial fallout from a recent Supreme Court ruling that restricted the administration's tariff authorities. When pressed by NBC News' Kristen"
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Csenge Advisory Group Increased Its LMBS Stake in Q4",
+      "publisher": "Motley Fool",
+      "published_at": "2026-02-26 20:27:39 UTC",
+      "url": "https://finance.yahoo.com/news/csenge-advisory-group-increased-lmbs-202739991.html",
+      "summary": "First Trust Low Duration Opportunities ETF targets income and stability through mortgage-backed securities in the fixed income space."
+    }
+  ],
   "performance": {
     "1d": "Live",
     "summary": "Broker Export Integration"
