@@ -1,0 +1,20 @@
+{
+    "generated_at": "2026-03-01T12:00:00Z",
+    "source": "AdvisorAgent",
+    "headline": "Quiet Market Day, No Major Action Required",
+    "macro_summary": "Market volatility is exceptionally low today with no major economic events or breaking news affecting the core holdings.",
+    "verdict": "NEUTRAL",
+    "suggestions": [
+        {
+            "asset": "PORTFOLIO",
+            "action": "HOLD",
+            "rationale": "No significant market drivers present. Maintain current allocations."
+        }
+    ],
+    "risks": [
+        "Complacency in a low-volatility environment."
+    ],
+    "news_context": [],
+    "global_context": [],
+    "disclaimer": "This briefing is auto-generated for informational purposes only and does not constitute financial advice."
+}
