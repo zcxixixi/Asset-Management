@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Newspaper, ExternalLink, Calendar, ArrowLeft } from 'lucide-react';
 
 
-interface NewsItem {
+export interface NewsItem {
     symbol: string;
     title: string;
     publisher: string;

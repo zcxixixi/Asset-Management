@@ -25,6 +25,13 @@ interface AdvisorSuggestion {
   rationale: string;
 }
 
+interface BriefingNewsItem {
+  symbol?: string;
+  title?: string;
+  published_at?: string;
+  url?: string;
+}
+
 interface AdvisorBriefingData {
   generated_at?: string;
   source?: string;
@@ -33,18 +40,8 @@ interface AdvisorBriefingData {
   verdict?: string;
   suggestions?: AdvisorSuggestion[];
   risks?: string[];
-  news_context?: Array<{
-    symbol?: string;
-    title?: string;
-    published_at?: string;
-    url?: string;
-  }>;
-  global_context?: Array<{
-    symbol?: string;
-    title?: string;
-    published_at?: string;
-    url?: string;
-  }>;
+  news_context?: BriefingNewsItem[];
+  global_context?: BriefingNewsItem[];
   disclaimer?: string;
 }
 
@@ -122,7 +119,7 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
   };
 
   const typedData = dashboardData as AdvisorPayload;
-  const report = typedData.advisor_briefing ?? FALLBACK_REPORT;
+  const report: AdvisorBriefingData = typedData.advisor_briefing ?? FALLBACK_REPORT;
   const macroSummary = (report.macro_summary || FALLBACK_REPORT.macro_summary).trim();
 
   const fallbackInsights: Insight[] = (report.suggestions && report.suggestions.length > 0
