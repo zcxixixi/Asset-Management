@@ -6,7 +6,7 @@
     },
     {
       "label": "Gold USD",
-      "value": "1,505.08"
+      "value": "1,510.08"
     },
     {
       "label": "US Stocks",
@@ -42,7 +42,7 @@
       "symbol": "GOLD.CN",
       "name": "博时黄金ETF联接C(估算USD)",
       "qty": "0.28775",
-      "value": "1,505.08"
+      "value": "1,510.08"
     }
   ],
   "chart_data": [
@@ -800,11 +800,11 @@
     },
     {
       "date": "2026-03-01",
-      "value": 1.2677
+      "value": 1.2689
     }
   ],
-  "total_balance": "5,276.50",
-  "last_updated": "2026-03-01 11:55:09",
+  "total_balance": "5,281.51",
+  "last_updated": "2026-03-01 06:51:24",
   "insights": [
     {
       "type": "opportunity",
@@ -823,10 +823,10 @@
     }
   ],
   "advisor_briefing": {
-    "generated_at": "2026-03-01 11:55:11",
+    "generated_at": "2026-03-01 06:51:26",
     "source": "rule-based",
-    "headline": "Portfolio Pulse: Balanced but Event-Sensitive",
-    "macro_summary": "7-day NAV move is -0.18%. Current allocation is Cash 10.8%, Gold 28.5%, US Stocks 60.6%. Portfolio remains diversified, but near-term volatility can be elevated around headline-heavy sessions.",
+    "headline": "Portfolio Pulse: NVDA.US drives latest market narrative",
+    "macro_summary": "7-day NAV move is -0.09%. Current allocation is Cash 10.8%, Gold 28.6%, US Stocks 60.6%. Portfolio remains diversified, but near-term volatility can be elevated around headline-heavy sessions.",
     "verdict": "Keep diversified core positions and adjust incrementally, not aggressively.",
     "suggestions": [
       {
@@ -849,9 +849,318 @@
       "Short-term market reactions to macro headlines can exceed fundamentals.",
       "Single-name concentration risk can amplify drawdowns."
     ],
-    "news_context": [],
+    "news_context": [
+      {
+        "symbol": "NVDA.US",
+        "title": "Wedbush Raises PT on NVIDIA Corporation (NVDA) Stock",
+        "publisher": "Insider Monkey",
+        "published_at": "2026-03-01 06:33:18 UTC",
+        "url": "https://finance.yahoo.com/news/wedbush-raises-pt-nvidia-corporation-063318066.html",
+        "summary": "NVIDIA Corporation (NASDAQ:NVDA) is among the 10 Unstoppable Stocks to Buy and Hold for the Next 3 Years. NVIDIA Corporation (NASDAQ:NVDA) is one of the Unstoppable Stocks to Buy and Hold for the Next 3 Years. On February 26, Wedbush lifted the firm’s price objective on the company’s stock to $300 from $230 while keeping an “Outperform” rating, […]"
+      },
+      {
+        "symbol": "NVDA.US",
+        "title": "Better Cryptocurrency to Buy Now With $1,000 And Hold For 3 Years: XRP vs. Bitcoin",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 06:20:00 UTC",
+        "url": "https://finance.yahoo.com/news/better-cryptocurrency-buy-now-1-062000584.html",
+        "summary": "The landscape is shifting rapidly, and these two coins are adapting differently."
+      },
+      {
+        "symbol": "GOLD.CN",
+        "title": "Centerra Gold (TSX:CG) Is Up 10.1% After Surging Reserves, Earnings And Dividend Hike – Has The Bull Case Changed?",
+        "publisher": "Simply Wall St.",
+        "published_at": "2026-03-01 06:11:38 UTC",
+        "url": "https://finance.yahoo.com/news/centerra-gold-tsx-cg-10-061138683.html",
+        "summary": "In February 2026, Centerra Gold Inc. reported full-year 2025 results, with sales rising to US$1,384.56 million and net income to US$583.99 million, alongside a quarterly dividend of C$0.07 per share payable on March 26, 2026. The company also announced very large percentage increases in proven and probable gold and copper reserves, reinforcing long-term mine planning while continuing buybacks, updating 2026 production guidance, and outlining an expanded global exploration program. We’ll now..."
+      },
+      {
+        "symbol": "NVDA.US",
+        "title": "This Artificial Intelligence (AI) Crypto Is Up 140% Over the Past 90 Days, But Is It a Buy?",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 05:50:00 UTC",
+        "url": "https://finance.yahoo.com/news/artificial-intelligence-ai-crypto-140-055000818.html",
+        "summary": "As long as the outlook for AI agents remains bright, this AI crypto could skyrocket in price."
+      },
+      {
+        "symbol": "NVDA.US",
+        "title": "The S&P 500 Just Did This for the 21st Time in the Past 100 Years. History Is Clear About What the Next 12 Months Could Look Like.",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 05:50:00 UTC",
+        "url": "https://finance.yahoo.com/news/p-500-just-did-21st-055000107.html",
+        "summary": "Investors like to know what's going to happen."
+      },
+      {
+        "symbol": "NVDA.US",
+        "title": "Veteran analyst sends shocking message on Nvidia after earnings",
+        "publisher": "TheStreet",
+        "published_at": "2026-03-01 05:37:00 UTC",
+        "url": "https://finance.yahoo.com/news/veteran-analyst-sends-shocking-message-053700314.html",
+        "summary": "Nvidia (NVDA) just reported another record quarter, but the markets did not react favorably, with NVDA stock falling roughly 5.5% after reporting earnings on Thursday, Feb. 26, the worst one-day drop since April 2025, even after another earnings beat and favorable guidance. However, Dan Ives from ..."
+      },
+      {
+        "symbol": "NVDA.US",
+        "title": "Big Pharma Dividend Stock BMY Could Help Turn $100,000 Into a Seven‑Figure Retirement",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 04:50:00 UTC",
+        "url": "https://finance.yahoo.com/news/big-pharma-dividend-stock-bmy-045000912.html",
+        "summary": "Bristol Myers Squibb has an attractive 4% yield and a strong dividend history."
+      },
+      {
+        "symbol": "NVDA.US",
+        "title": "Can Wraps Save Sweetgreen?",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 04:50:00 UTC",
+        "url": "https://finance.yahoo.com/news/wraps-save-sweetgreen-045000533.html",
+        "summary": "Sweetgreen's business has fallen off a cliff. Can a new menu item turn it around?"
+      }
+    ],
+    "global_context": [
+      {
+        "symbol": "MACRO",
+        "title": "Mining stocks are the new market darlings, fueled by geopolitical risks and AI demand",
+        "publisher": "Yahoo Finance",
+        "published_at": "2026-02-28 17:30:05 UTC",
+        "url": "https://finance.yahoo.com/news/mining-stocks-are-the-new-market-darlings-fueled-by-geopolitical-risks-and-ai-demand-173005780.html",
+        "summary": "Mining stocks are rising as the sector becomes a strategic long-term asset for investors."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "AREX Capital Loads Up on CALY With 453,000 Shares",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 06:02:53 UTC",
+        "url": "https://finance.yahoo.com/news/arex-capital-loads-caly-453-060253171.html",
+        "summary": "Callaway Golf Company integrates equipment, apparel, and entertainment venues to serve global golf and leisure markets."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "The S&P 500 Just Did This for the 21st Time in the Past 100 Years. History Is Clear About What the Next 12 Months Could Look Like.",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 05:50:00 UTC",
+        "url": "https://finance.yahoo.com/news/p-500-just-did-21st-055000107.html",
+        "summary": "Investors like to know what's going to happen."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Herald Loads Up On DigitalOcean (DOCN) With 202,000 Shares",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 04:56:40 UTC",
+        "url": "https://finance.yahoo.com/news/herald-loads-digitalocean-docn-202-045640851.html",
+        "summary": "This cloud platform provider serves developers and small businesses with scalable infrastructure and automation-focused solutions."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Big Pharma Dividend Stock BMY Could Help Turn $100,000 Into a Seven‑Figure Retirement",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 04:50:00 UTC",
+        "url": "https://finance.yahoo.com/news/big-pharma-dividend-stock-bmy-045000912.html",
+        "summary": "Bristol Myers Squibb has an attractive 4% yield and a strong dividend history."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Dow Jones Futures To React To U.S.-Israeli Attacks On Iran; Khamenei Killed",
+        "publisher": "Investor's Business Daily",
+        "published_at": "2026-03-01 03:44:34 UTC",
+        "url": "",
+        "summary": "Iran confirmed Ayatollah Khamenei's death as U.S.-Israeli attacks continue. How will Dow Jones futures and oil react?"
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Warren Buffett's Final $373 Billion Warning Sent Shockwaves Through Wall Street",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 02:41:00 UTC",
+        "url": "https://finance.yahoo.com/news/warren-buffetts-final-373-billion-024100554.html",
+        "summary": "The Oracle of Omaha's actions leading up to his retirement make clear that the time to be fearful when others are greedy is here."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "What the Attacks on Iran, Khamenei’s Death Mean for Oil and Stocks",
+        "publisher": "Barrons.com",
+        "published_at": "2026-03-01 01:57:00 UTC",
+        "url": "",
+        "summary": "A closure of the Strait of Hormuz is likely to cause widespread disruption in energy markets and shipping. What to know."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Insight Holdings Trims AppFolio as Property Software Faces a More Selective SaaS Market",
+        "publisher": "Motley Fool",
+        "published_at": "2026-03-01 01:22:43 UTC",
+        "url": "https://finance.yahoo.com/news/insight-holdings-trims-appfolio-property-012243195.html",
+        "summary": "Insight Holdings reduced its stake in AppFolio, a property management software provider whose shares have lagged the broader market over the past year. With real estate transaction activity slower and SaaS valuations more selective, investors are reassessing how much growth is tied to units under management versus higher-margin payments and services."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Excluding the \"Magnificent Seven\" Stocks, Here's How the Market Is Performing in 2026",
+        "publisher": "Motley Fool",
+        "published_at": "2026-02-28 22:23:00 UTC",
+        "url": "https://finance.yahoo.com/news/excluding-magnificent-seven-stocks-heres-222300285.html",
+        "summary": "There's a major market rotation going on from big tech to the rest of the market."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Mid-Cap ETFs in a High Momentum: Here's Why",
+        "publisher": "Zacks",
+        "published_at": "2026-02-27 17:00:00 UTC",
+        "url": "https://finance.yahoo.com/news/mid-cap-etfs-high-momentum-170000893.html",
+        "summary": "Mid-cap ETFs are gaining momentum, balancing growth and stability as tariff risks and rate outlook weigh on large and small caps. Here's why investors are watching."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Exchange-Traded Funds, Equity Futures Lower Pre-Bell Friday Amid Inflation Data Release",
+        "publisher": "MT Newswires",
+        "published_at": "2026-02-27 13:55:23 UTC",
+        "url": "https://finance.yahoo.com/news/exchange-traded-funds-equity-futures-135523252.html",
+        "summary": "The broad market exchange-traded fund SPDR S&P 500 ETF Trust (SPY) was down 0.7% and the actively tr"
+      },
+      {
+        "symbol": "MACRO",
+        "title": "11 S&P 500 Stocks Blow Away Analysts' Quarterly Estimates",
+        "publisher": "Investor's Business Daily",
+        "published_at": "2026-02-27 12:24:28 UTC",
+        "url": "",
+        "summary": "Now that fourth quarter earnings season is wrapping up, it's clear which S&P 500 stocks overdelivered."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Scott Bessent Sidesteps $134 Billion Tariff Refund Question, Calls Corporate Lawsuits 'Ultimate Corporate Welfare'",
+        "publisher": "Benzinga",
+        "published_at": "2026-02-27 01:30:29 UTC",
+        "url": "https://finance.yahoo.com/news/scott-bessent-sidesteps-134-billion-013029260.html",
+        "summary": "Treasury Secretary Scott Bessent refused to commit to issuing $134 billion in potential tariff refunds during a post-State of the Union interview, instead framing corporate demands for repayment as a form of government handout. The Refund Standoff Following President Donald Trump's 2026 State of the Union address, Bessent addressed the growing legal and financial fallout from a recent Supreme Court ruling that restricted the administration's tariff authorities. When pressed by NBC News' Kristen"
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Csenge Advisory Group Increased Its LMBS Stake in Q4",
+        "publisher": "Motley Fool",
+        "published_at": "2026-02-26 20:27:39 UTC",
+        "url": "https://finance.yahoo.com/news/csenge-advisory-group-increased-lmbs-202739991.html",
+        "summary": "First Trust Low Duration Opportunities ETF targets income and stability through mortgage-backed securities in the fixed income space."
+      }
+    ],
     "disclaimer": "Informational only, not financial advice."
   },
+  "daily_news": [
+    {
+      "symbol": "MACRO",
+      "title": "Mining stocks are the new market darlings, fueled by geopolitical risks and AI demand",
+      "publisher": "Yahoo Finance",
+      "published_at": "2026-02-28 17:30:05 UTC",
+      "url": "https://finance.yahoo.com/news/mining-stocks-are-the-new-market-darlings-fueled-by-geopolitical-risks-and-ai-demand-173005780.html",
+      "summary": "Mining stocks are rising as the sector becomes a strategic long-term asset for investors."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "AREX Capital Loads Up on CALY With 453,000 Shares",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01 06:02:53 UTC",
+      "url": "https://finance.yahoo.com/news/arex-capital-loads-caly-453-060253171.html",
+      "summary": "Callaway Golf Company integrates equipment, apparel, and entertainment venues to serve global golf and leisure markets."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "The S&P 500 Just Did This for the 21st Time in the Past 100 Years. History Is Clear About What the Next 12 Months Could Look Like.",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01 05:50:00 UTC",
+      "url": "https://finance.yahoo.com/news/p-500-just-did-21st-055000107.html",
+      "summary": "Investors like to know what's going to happen."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Herald Loads Up On DigitalOcean (DOCN) With 202,000 Shares",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01 04:56:40 UTC",
+      "url": "https://finance.yahoo.com/news/herald-loads-digitalocean-docn-202-045640851.html",
+      "summary": "This cloud platform provider serves developers and small businesses with scalable infrastructure and automation-focused solutions."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Big Pharma Dividend Stock BMY Could Help Turn $100,000 Into a Seven‑Figure Retirement",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01 04:50:00 UTC",
+      "url": "https://finance.yahoo.com/news/big-pharma-dividend-stock-bmy-045000912.html",
+      "summary": "Bristol Myers Squibb has an attractive 4% yield and a strong dividend history."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Dow Jones Futures To React To U.S.-Israeli Attacks On Iran; Khamenei Killed",
+      "publisher": "Investor's Business Daily",
+      "published_at": "2026-03-01 03:44:34 UTC",
+      "url": "",
+      "summary": "Iran confirmed Ayatollah Khamenei's death as U.S.-Israeli attacks continue. How will Dow Jones futures and oil react?"
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Warren Buffett's Final $373 Billion Warning Sent Shockwaves Through Wall Street",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01 02:41:00 UTC",
+      "url": "https://finance.yahoo.com/news/warren-buffetts-final-373-billion-024100554.html",
+      "summary": "The Oracle of Omaha's actions leading up to his retirement make clear that the time to be fearful when others are greedy is here."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "What the Attacks on Iran, Khamenei’s Death Mean for Oil and Stocks",
+      "publisher": "Barrons.com",
+      "published_at": "2026-03-01 01:57:00 UTC",
+      "url": "",
+      "summary": "A closure of the Strait of Hormuz is likely to cause widespread disruption in energy markets and shipping. What to know."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Insight Holdings Trims AppFolio as Property Software Faces a More Selective SaaS Market",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01 01:22:43 UTC",
+      "url": "https://finance.yahoo.com/news/insight-holdings-trims-appfolio-property-012243195.html",
+      "summary": "Insight Holdings reduced its stake in AppFolio, a property management software provider whose shares have lagged the broader market over the past year. With real estate transaction activity slower and SaaS valuations more selective, investors are reassessing how much growth is tied to units under management versus higher-margin payments and services."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Excluding the \"Magnificent Seven\" Stocks, Here's How the Market Is Performing in 2026",
+      "publisher": "Motley Fool",
+      "published_at": "2026-02-28 22:23:00 UTC",
+      "url": "https://finance.yahoo.com/news/excluding-magnificent-seven-stocks-heres-222300285.html",
+      "summary": "There's a major market rotation going on from big tech to the rest of the market."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Mid-Cap ETFs in a High Momentum: Here's Why",
+      "publisher": "Zacks",
+      "published_at": "2026-02-27 17:00:00 UTC",
+      "url": "https://finance.yahoo.com/news/mid-cap-etfs-high-momentum-170000893.html",
+      "summary": "Mid-cap ETFs are gaining momentum, balancing growth and stability as tariff risks and rate outlook weigh on large and small caps. Here's why investors are watching."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Exchange-Traded Funds, Equity Futures Lower Pre-Bell Friday Amid Inflation Data Release",
+      "publisher": "MT Newswires",
+      "published_at": "2026-02-27 13:55:23 UTC",
+      "url": "https://finance.yahoo.com/news/exchange-traded-funds-equity-futures-135523252.html",
+      "summary": "The broad market exchange-traded fund SPDR S&P 500 ETF Trust (SPY) was down 0.7% and the actively tr"
+    },
+    {
+      "symbol": "MACRO",
+      "title": "11 S&P 500 Stocks Blow Away Analysts' Quarterly Estimates",
+      "publisher": "Investor's Business Daily",
+      "published_at": "2026-02-27 12:24:28 UTC",
+      "url": "",
+      "summary": "Now that fourth quarter earnings season is wrapping up, it's clear which S&P 500 stocks overdelivered."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Scott Bessent Sidesteps $134 Billion Tariff Refund Question, Calls Corporate Lawsuits 'Ultimate Corporate Welfare'",
+      "publisher": "Benzinga",
+      "published_at": "2026-02-27 01:30:29 UTC",
+      "url": "https://finance.yahoo.com/news/scott-bessent-sidesteps-134-billion-013029260.html",
+      "summary": "Treasury Secretary Scott Bessent refused to commit to issuing $134 billion in potential tariff refunds during a post-State of the Union interview, instead framing corporate demands for repayment as a form of government handout. The Refund Standoff Following President Donald Trump's 2026 State of the Union address, Bessent addressed the growing legal and financial fallout from a recent Supreme Court ruling that restricted the administration's tariff authorities. When pressed by NBC News' Kristen"
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Csenge Advisory Group Increased Its LMBS Stake in Q4",
+      "publisher": "Motley Fool",
+      "published_at": "2026-02-26 20:27:39 UTC",
+      "url": "https://finance.yahoo.com/news/csenge-advisory-group-increased-lmbs-202739991.html",
+      "summary": "First Trust Low Duration Opportunities ETF targets income and stability through mortgage-backed securities in the fixed income space."
+    }
+  ],
   "performance": {
     "1d": "Live",
     "summary": "Broker Export Integration"
