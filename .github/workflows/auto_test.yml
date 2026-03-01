@@ -40,3 +40,6 @@ jobs:
 
       - name: Validate safe-float robustness
         run: python src/stability_test.py
+
+      - name: Validate GLM integration contract
+        run: python src/test_glm_integration.py
