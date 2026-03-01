@@ -25,6 +25,13 @@ interface AdvisorSuggestion {
   rationale: string;
 }
 
+interface BriefingNewsItem {
+  symbol?: string;
+  title?: string;
+  published_at?: string;
+  url?: string;
+}
+
 interface AdvisorBriefingData {
   generated_at?: string;
   source?: string;
@@ -33,12 +40,8 @@ interface AdvisorBriefingData {
   verdict?: string;
   suggestions?: AdvisorSuggestion[];
   risks?: string[];
-  news_context?: Array<{
-    symbol?: string;
-    title?: string;
-    published_at?: string;
-    url?: string;
-  }>;
+  news_context?: BriefingNewsItem[];
+  global_context?: BriefingNewsItem[];
   disclaimer?: string;
 }
 
@@ -116,7 +119,7 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
   };
 
   const typedData = dashboardData as AdvisorPayload;
-  const report = typedData.advisor_briefing ?? FALLBACK_REPORT;
+  const report: AdvisorBriefingData = typedData.advisor_briefing ?? FALLBACK_REPORT;
   const macroSummary = (report.macro_summary || FALLBACK_REPORT.macro_summary).trim();
 
   const fallbackInsights: Insight[] = (report.suggestions && report.suggestions.length > 0
@@ -232,6 +235,37 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
             })}
           </div>
         </motion.section>
+
+        {/* Global & Portfolio News Context */}
+        {((report.global_context && report.global_context.length > 0) || (report.news_context && report.news_context.length > 0)) && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mt-12 space-y-6"
+          >
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="h-px bg-slate-200 flex-1"></div>
+              <h3 className="text-xs uppercase tracking-widest font-bold text-slate-400">Based on Today's News</h3>
+              <div className="h-px bg-slate-200 flex-1"></div>
+            </div>
+
+            <div className="bg-white rounded-[2rem] p-6 md:p-8 border border-slate-200/60 shadow-sm space-y-5">
+              {(report.global_context || []).slice(0, 2).map((news, idx) => (
+                <a key={`global-${idx}`} href={news.url || '#'} target="_blank" rel="noreferrer" className="block group border-l-4 border-blue-500 pl-4 py-1 hover:bg-slate-50 transition-colors">
+                  <p className="text-xs text-blue-600 font-bold tracking-widest uppercase mb-1">Macro Market Event</p>
+                  <h4 className="text-slate-900 font-serif text-lg leading-snug group-hover:text-blue-600 transition-colors">{news.title}</h4>
+                </a>
+              ))}
+              {(report.news_context || []).slice(0, 2).map((news, idx) => (
+                <a key={`portfolio-${idx}`} href={news.url || '#'} target="_blank" rel="noreferrer" className="block group border-l-4 border-emerald-500 pl-4 py-1 hover:bg-slate-50 transition-colors">
+                  <p className="text-xs text-emerald-600 font-bold tracking-widest uppercase mb-1">Portfolio Specific: {news.symbol}</p>
+                  <h4 className="text-slate-900 font-serif text-lg leading-snug group-hover:text-emerald-600 transition-colors">{news.title}</h4>
+                </a>
+              ))}
+            </div>
+          </motion.section>
+        )}
 
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
