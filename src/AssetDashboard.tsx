@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer, YAxis, XAxis } from 'recharts';
 import { Eye, EyeOff, Sparkles, ShieldCheck, LayoutDashboard, ListFilter, Activity, Fingerprint, Database, ChevronRight } from 'lucide-react';
-import dashboardDataRaw from './data.json';
+import { bundledDashboardData, fetchLiveDashboardData } from './live_data';
 
 type ActiveTab = 'overview' | 'holdings' | 'diagnostics';
 type TimeRange = '7d' | '30d' | 'all';
@@ -85,47 +85,40 @@ interface RawDashboardData {
   advisor_briefing?: AdvisorBriefingData;
 }
 
-const rawData = dashboardDataRaw as RawDashboardData;
+function buildDashboardData(rawData: RawDashboardData): DashboardData {
+  const normalizedChartData: ChartDataPoint[] = (rawData.chart_data ?? [])
+    .map((point) => ({
+      date: String(point.date ?? ''),
+      value: Number(point.value ?? point.total_usd ?? 0),
+    }))
+    .filter((point) => point.date.length > 0);
 
-const normalizedChartData: ChartDataPoint[] = (rawData.chart_data ?? [])
-  .map((point) => ({
+  const fallbackChartData: ChartDataPoint[] = (rawData.daily_data ?? []).map((point) => ({
     date: String(point.date ?? ''),
-    value: Number(point.value ?? point.total_usd ?? 0),
-  }))
-  .filter((point) => point.date.length > 0);
+    value: Number(point.total_usd ?? 0),
+  }));
 
-const fallbackChartData: ChartDataPoint[] = (rawData.daily_data ?? []).map((point) => ({
-  date: String(point.date ?? ''),
-  value: Number(point.total_usd ?? 0),
-}));
+  const fallbackAssets: AssetItem[] = [
+    { label: 'Cash USD', value: Number(rawData.summary?.cash_usd ?? 0).toFixed(2) },
+    { label: 'Gold USD', value: Number(rawData.summary?.gold_usd ?? 0).toFixed(2) },
+    { label: 'US Stocks', value: Number(rawData.summary?.stocks_usd ?? 0).toFixed(2) },
+  ];
 
-const fallbackAssets: AssetItem[] = [
-  { label: 'Cash USD', value: Number(rawData.summary?.cash_usd ?? 0).toFixed(2) },
-  { label: 'Gold USD', value: Number(rawData.summary?.gold_usd ?? 0).toFixed(2) },
-  { label: 'US Stocks', value: Number(rawData.summary?.stocks_usd ?? 0).toFixed(2) },
-];
-
-const dashboardData: DashboardData = {
-  total_balance: rawData.total_balance ?? Number(rawData.summary?.total_usd ?? 0).toFixed(2),
-  performance: { '1d': rawData.performance?.['1d'] ?? 'Live' },
-  chart_data: normalizedChartData.length > 0 ? normalizedChartData : fallbackChartData,
-  assets: rawData.assets && rawData.assets.length > 0 ? rawData.assets : fallbackAssets,
-  holdings: rawData.holdings ?? [],
-  diagnostics: {
-    math_proof: rawData.diagnostics?.math_proof ?? 'N/A',
-    api_status: rawData.diagnostics?.api_status ?? 'Unknown',
-    latency_ms: rawData.diagnostics?.latency_ms ?? '--',
-    last_run: rawData.diagnostics?.last_run ?? rawData.last_updated ?? 'N/A',
-    steps: rawData.diagnostics?.steps ?? [{ name: 'Data Load', status: 'Success' }],
-  },
-};
-
-const advisorBriefing = rawData.advisor_briefing;
-const advisorHeadline = advisorBriefing?.headline ?? 'Portfolio Pulse: Balanced but Event-Sensitive';
-const advisorSummary =
-  advisorBriefing?.macro_summary ??
-  'No live AI briefing available yet. Keep diversified allocation and rebalance with discipline.';
-const advisorSuggestion = advisorBriefing?.suggestions?.[0];
+  return {
+    total_balance: rawData.total_balance ?? Number(rawData.summary?.total_usd ?? 0).toFixed(2),
+    performance: { '1d': rawData.performance?.['1d'] ?? 'Live' },
+    chart_data: normalizedChartData.length > 0 ? normalizedChartData : fallbackChartData,
+    assets: rawData.assets && rawData.assets.length > 0 ? rawData.assets : fallbackAssets,
+    holdings: rawData.holdings ?? [],
+    diagnostics: {
+      math_proof: rawData.diagnostics?.math_proof ?? 'N/A',
+      api_status: rawData.diagnostics?.api_status ?? 'Unknown',
+      latency_ms: rawData.diagnostics?.latency_ms ?? '--',
+      last_run: rawData.diagnostics?.last_run ?? rawData.last_updated ?? 'N/A',
+      steps: rawData.diagnostics?.steps ?? [{ name: 'Data Load', status: 'Success' }],
+    },
+  };
+}
 
 interface AssetDashboardProps {
   onOpenAdvisor?: () => void;
@@ -137,13 +130,39 @@ interface AssetDashboardProps {
 export default function AssetDashboard({ onOpenAdvisor, onOpenNews, isPrivacyMode, setIsPrivacyMode }: AssetDashboardProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
+  const [rawData, setRawData] = useState<RawDashboardData>(bundledDashboardData as RawDashboardData);
 
-  const filteredChartData = React.useMemo(() => {
+  useEffect(() => {
+    let alive = true;
+    fetchLiveDashboardData()
+      .then((payload) => {
+        if (alive) {
+          setRawData(payload as RawDashboardData);
+        }
+      })
+      .catch(() => {
+        // Keep bundled fallback when live data is unavailable.
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const dashboardData = useMemo(() => buildDashboardData(rawData), [rawData]);
+  const advisorBriefing = rawData.advisor_briefing;
+  const advisorHeadline = advisorBriefing?.headline ?? 'Portfolio Pulse: Balanced but Event-Sensitive';
+  const advisorSummary =
+    advisorBriefing?.macro_summary ??
+    'No live AI briefing available yet. Keep diversified allocation and rebalance with discipline.';
+  const advisorSuggestion = advisorBriefing?.suggestions?.[0];
+
+  const filteredChartData = useMemo(() => {
     const data = dashboardData.chart_data;
     if (timeRange === '7d') return data.slice(-7);
     if (timeRange === '30d') return data.slice(-30);
     return data;
-  }, [timeRange]);
+  }, [dashboardData.chart_data, timeRange]);
 
   const p = (val: string | number) => isPrivacyMode ? '••••' : val;
   const formatChartDate = (date: string) => {
