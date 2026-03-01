@@ -21,17 +21,15 @@ import pandas as pd
 import yfinance as yf
 
 from workbook_sync import WorkbookSyncError, normalize_date_str, sync_workbook
+from news_collector import get_portfolio_context
+from briefing_agent import generate_briefing
+from advisor_contract import generate_fallback
 
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
     pass
-
-try:
-    from openai import OpenAI
-except Exception:  # pragma: no cover
-    OpenAI = None
 
 INPUT_PATH = "assets.xlsx"
 OUTPUT_PATHS = ["src/data.json", "public/data.json"]
@@ -399,130 +397,6 @@ def sanitize_briefing(raw: Any, fallback: Dict[str, Any], news_items: List[Dict[
     }
 
 
-def generate_mock_news(
-    symbols: List[str], mock_date_str: str, api_key: str, base_url: str, model: str
-) -> Dict[str, List[Dict[str, str]]]:
-    print(f"\n[Simulation] Generating historically plausible news for {mock_date_str} via LLM...")
-    if not api_key or OpenAI is None:
-        print("Warning: Cannot generate dynamic mock news without API key. Using static hardcoded mock news.")
-        return {
-            "portfolio": [
-                {
-                    "symbol": symbols[0] if symbols else "PORTFOLIO",
-                    "title": f"Historical Simulation Alert: Major event shakes {symbols[0] if symbols else 'markets'}.",
-                    "publisher": "OpenClaw Financial",
-                    "published_at": f"{mock_date_str} 08:30:00 UTC",
-                    "url": "#",
-                    "summary": f"This is a simulated headline reflecting a major event for {symbols[0] if symbols else 'asset'} around {mock_date_str}.",
-                },
-                {
-                    "symbol": symbols[1] if len(symbols) > 1 else "PORTFOLIO",
-                    "title": f"Analysts Upgrade Outlook Amid Sector Rallies",
-                    "publisher": "Simulation Market News",
-                    "published_at": f"{mock_date_str} 09:15:00 UTC",
-                    "url": "#",
-                    "summary": f"Analysts project continued growth for assets like {symbols[1] if len(symbols) > 1 else 'this'} following strong earnings.",
-                }
-            ],
-            "global": [
-                {
-                    "symbol": "MACRO",
-                    "title": f"Global Markets React to Fed Rate Decisions",
-                    "publisher": "Macro Daily",
-                    "published_at": f"{mock_date_str} 06:00:00 UTC",
-                    "url": "#",
-                    "summary": f"On {mock_date_str}, global indices showed increased volatility as central banks signaled potential policy shifts.",
-                },
-                {
-                    "symbol": "MACRO",
-                    "title": f"Geopolitical Tensions Shape Commodity Prices",
-                    "publisher": "Global Tracker",
-                    "published_at": f"{mock_date_str} 07:45:00 UTC",
-                    "url": "#",
-                    "summary": f"Commodity markets saw significant movement leading up to {mock_date_str} due to international trade developments.",
-                }
-            ]
-        }
-
-    prompt = (
-        f"You are a mock data generator for a historical simulation. The simulated date is {mock_date_str}.\n"
-        f"Generate exactly 8 realistic financial news headlines regarding the portfolio assets {symbols}, "
-        f"and 15 realistic global macroeconomic headlines that would have appeared on or just before {mock_date_str}.\n"
-        "Return strictly a JSON object with two keys: 'portfolio' and 'global'.\n"
-        "Each is a list of objects containing: 'symbol' (use actual symbol for portfolio, or 'MACRO' for global), "
-        f"'title', 'publisher', 'published_at' (format like '{mock_date_str} 08:30:00 UTC'), 'url' (make a realistic-looking url), 'summary'."
-    )
-
-    try:
-        client = OpenAI(api_key=api_key, base_url=base_url) if base_url else OpenAI(api_key=api_key)
-        completion = client.chat.completions.create(
-            model=model,
-            temperature=0.7,
-            response_format={"type": "json_object"},
-            messages=[{"role": "system", "content": prompt}],
-        )
-        content = completion.choices[0].message.content or "{}"
-        parsed = json.loads(content)
-        return {
-            "portfolio": parsed.get("portfolio", []),
-            "global": parsed.get("global", []),
-        }
-    except Exception as exc:
-        print(f"Warning: Mock news generation failed: {exc}")
-        return {"portfolio": [], "global": []}
-
-
-def generate_llm_briefing(
-    assets: List[Dict[str, str]],
-    holdings: List[Dict[str, str]],
-    perf_7d: float,
-    news_items: Dict[str, List[Dict[str, str]]],
-) -> Dict[str, Any]:
-    fallback = build_rule_based_briefing(assets, perf_7d, news_items)
-
-    api_key = os.getenv("GLM_API_KEY") or os.getenv("OPENAI_API_KEY", "").strip()
-    if not api_key or OpenAI is None:
-        return fallback
-
-    base_url = os.getenv("GLM_BASE_URL")
-    model = os.getenv("GLM_MODEL") or os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
-
-    payload = {
-        "portfolio_assets": assets,
-        "holdings": holdings,
-        "perf_7d_pct": round(perf_7d, 4),
-        "portfolio_news": news_items.get("portfolio", []),
-        "global_news": news_items.get("global", []),
-    }
-
-    system_prompt = (
-        "You are an enterprise-grade portfolio analyst. "
-        "Analyze the provided `portfolio_news` and `global_news`. "
-        "Crucially, tie major global events (e.g., political shifts, macro data) directly to the user's specific holdings and their relative weights. "
-        "Use only provided data and return strict JSON with keys: "
-        "headline, macro_summary, verdict, suggestions, risks. "
-        "suggestions items must include: asset, action (Hold, Accumulate, Reduce, etc.), rationale (explaining the direct impact of global/portfolio news on this specific asset weighting)."
-    )
-
-    try:
-        client = OpenAI(api_key=api_key, base_url=base_url) if base_url else OpenAI(api_key=api_key)
-        completion = client.chat.completions.create(
-            model=model,
-            temperature=0.2,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
-            ],
-        )
-        content = completion.choices[0].message.content or "{}"
-        parsed = json.loads(content)
-        return sanitize_briefing(parsed, fallback, news_items.get("portfolio", []), source=f"llm:{model}")
-    except Exception as exc:
-        print(f"Warning: LLM briefing failed, using fallback: {exc}")
-        return fallback
-
-
 def suggestion_to_insight_type(action: str) -> str:
     action_lower = str(action).lower()
     if any(word in action_lower for word in ["reduce", "trim", "rebalance", "tighten", "hedge", "defensive"]):
@@ -679,25 +553,44 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
         raise ValueError("chart_data generated empty from Daily sheet")
 
     if mock_date_str:
-        api_key = os.getenv("GLM_API_KEY") or os.getenv("OPENAI_API_KEY", "").strip()
-        base_url = os.getenv("GLM_BASE_URL")
-        model = os.getenv("GLM_MODEL") or os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
-        all_news = generate_mock_news(tracked_symbols, mock_date_str, api_key, base_url, model)
-        portfolio_news = all_news.get("portfolio", [])
-        global_news = all_news.get("global", [])
+        print("\n[Simulation] Skipping realtime news fetch for historical simulation.")
+        # We can implement historical mock data fetching here later if needed
+        news_context_list = []
+        global_context_list = []
     else:
-        print("\nCollecting latest portfolio-related news...")
-        portfolio_news = collect_portfolio_news(tracked_symbols, max_items=MAX_NEWS_ITEMS, mock_date=None)
-        print(f"Collected {len(portfolio_news)} portfolio news items")
-        
-        global_news = collect_global_news(max_items=15, mock_date=None)
-        print(f"Collected {len(global_news)} global news items")
-        
-        all_news = {"portfolio": portfolio_news, "global": global_news}
+        print("\nCollecting portfolio and global news via new pipeline...")
+        context_result = get_portfolio_context(tracked_symbols)
+        news_context_list = context_result.get("news_context", [])
+        global_context_list = context_result.get("global_context", [])
+        print(f"Collected {len(news_context_list)} portfolio news items and {len(global_context_list)} global news items.")
 
-    print("Generating personalized advisor briefing...")
-    advisor_briefing = generate_llm_briefing(final_assets, live_holdings, perf_7d, all_news)
+    print("\nGenerating personalized advisor briefing via new pipeline...")
+    # Map back original old struct to fit extract data pipeline signature if needed? 
+    # Actually, the new schema is different. We should just call the briefing_agent.
+    try:
+        advisor_briefing = generate_briefing(
+            holdings=live_holdings,
+            news_context=news_context_list,
+            global_context=global_context_list
+        )
+    except Exception as e:
+        print(f"Briefing generation failed: {e}. Using fallback.")
+        advisor_briefing = generate_fallback()
+
     insights = briefing_to_insights(advisor_briefing)
+
+    mapped_news = []
+    for item in global_context_list:
+        # news_collector returns NewsItem objects or dicts with 'headline', 'source', 'timestamp'
+        data = item.model_dump() if hasattr(item, "model_dump") else item
+        mapped_news.append({
+            "symbol": data.get("symbol", "MACRO"),
+            "title": data.get("headline", "Untitled"),
+            "publisher": data.get("source", "Unknown"),
+            "published_at": data.get("timestamp", ""),
+            "url": data.get("url", "#"),
+            "summary": data.get("summary", "")
+        })
 
     response = {
         "assets": final_assets,
@@ -707,7 +600,7 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
         "last_updated": sync_now.strftime("%Y-%m-%d %H:%M:%S"),
         "insights": insights,
         "advisor_briefing": advisor_briefing,
-        "daily_news": global_news,
+        "daily_news": mapped_news,
         "performance": {"1d": "Live", "summary": "Broker Export Integration"},
     }
 
