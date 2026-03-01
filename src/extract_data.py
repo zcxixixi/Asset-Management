@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 import yfinance as yf
+from openpyxl import load_workbook
 
 try:
     from openai import OpenAI
@@ -383,6 +384,70 @@ def briefing_to_insights(briefing: Dict[str, Any]) -> List[Dict[str, str]]:
     return insights
 
 
+def write_sync_timestamp_to_excel(sync_dt: datetime) -> None:
+    """
+    Keep workbook timestamps aligned with JSON last_updated.
+    Updates:
+    - Holdings.timestamp for active holding rows
+    - Exec!B2 (data time)
+    - Exec cell right to label "更新时间" when present
+    """
+    if not os.path.exists(INPUT_PATH):
+        return
+
+    try:
+        workbook = load_workbook(INPUT_PATH)
+        updated = False
+        default_fmt = "yyyy-mm-dd hh:mm:ss"
+
+        if "Holdings" in workbook.sheetnames:
+            ws = workbook["Holdings"]
+            header_map = {
+                str(ws.cell(row=1, column=col).value).strip().lower(): col
+                for col in range(1, ws.max_column + 1)
+            }
+            ts_col = header_map.get("timestamp")
+            symbol_col = header_map.get("symbol")
+            if ts_col and symbol_col:
+                base_fmt = ws.cell(row=2, column=ts_col).number_format or default_fmt
+                for row in range(2, ws.max_row + 1):
+                    symbol = ws.cell(row=row, column=symbol_col).value
+                    if symbol is None or str(symbol).strip() == "":
+                        continue
+                    ts_cell = ws.cell(row=row, column=ts_col)
+                    ts_cell.value = sync_dt
+                    ts_cell.number_format = base_fmt
+                    updated = True
+
+        if "Exec" in workbook.sheetnames:
+            ws = workbook["Exec"]
+            b2 = ws["B2"]
+            b2_fmt = b2.number_format or default_fmt
+            b2.value = sync_dt
+            b2.number_format = b2_fmt
+            updated = True
+
+            found_update_label = False
+            for row in range(1, min(ws.max_row, 40) + 1):
+                for col in range(1, min(ws.max_column, 20) + 1):
+                    value = ws.cell(row=row, column=col).value
+                    if isinstance(value, str) and value.strip() == "更新时间":
+                        target = ws.cell(row=row, column=col + 1)
+                        target.number_format = target.number_format or b2_fmt
+                        target.value = sync_dt
+                        found_update_label = True
+                        updated = True
+                        break
+                if found_update_label:
+                    break
+
+        if updated:
+            workbook.save(INPUT_PATH)
+            print("Updated Excel timestamp fields in assets.xlsx")
+    except Exception as exc:
+        print(f"Warning: Failed to write sync timestamp back to Excel: {exc}")
+
+
 def extract_data() -> Dict[str, Any]:
     if not os.path.exists(INPUT_PATH):
         raise FileNotFoundError(f"{INPUT_PATH} not found in repository root")
@@ -465,12 +530,16 @@ def extract_data() -> Dict[str, Any]:
     advisor_briefing = generate_llm_briefing(final_assets, live_holdings, perf_7d, news_items)
     insights = briefing_to_insights(advisor_briefing)
 
+    sync_now = datetime.now()
+    last_updated_text = sync_now.strftime("%Y-%m-%d %H:%M:%S")
+    write_sync_timestamp_to_excel(sync_now)
+
     response = {
         "assets": final_assets,
         "holdings": live_holdings,
         "chart_data": chart_data,
         "total_balance": f"{total_balance:,.2f}",
-        "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "last_updated": last_updated_text,
         "insights": insights,
         "advisor_briefing": advisor_briefing,
         "performance": {"1d": "Live", "summary": "Broker Export Integration"},

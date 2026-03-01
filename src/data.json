@@ -796,7 +796,7 @@
     }
   ],
   "total_balance": "5,276.50",
-  "last_updated": "2026-03-01 02:32:11",
+  "last_updated": "2026-03-01 10:43:24",
   "insights": [
     {
       "type": "neutral",
@@ -815,7 +815,7 @@
     }
   ],
   "advisor_briefing": {
-    "generated_at": "2026-03-01 02:32:11",
+    "generated_at": "2026-03-01 10:43:24",
     "source": "rule-based",
     "headline": "Portfolio Pulse: Balanced but Event-Sensitive",
     "macro_summary": "7-day NAV move is +0.79%. Current allocation is Cash 10.8%, Gold 28.5%, US Stocks 60.6%. Portfolio remains diversified, but near-term volatility can be elevated around headline-heavy sessions.",
