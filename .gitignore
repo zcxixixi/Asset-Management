@@ -27,3 +27,4 @@ dist-ssr
 public/assets.xlsx
 .env
 .env.*
+backups/

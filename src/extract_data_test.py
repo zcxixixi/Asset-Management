@@ -6,6 +6,7 @@ Validates that src/extract_data.py produces a dashboard-compatible JSON payload.
 import json
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -66,6 +67,9 @@ def validate_payload() -> None:
     assert_true(isinstance(chart_data, list) and len(chart_data) > 0, "chart_data must be a non-empty list")
     first_point = chart_data[0]
     assert_true("date" in first_point and "value" in first_point, "chart_data point must include date/value")
+    last_point = chart_data[-1]
+    assert_true(isinstance(last_point.get("date"), str), "chart_data last date must be a string")
+    assert_true(last_point["date"].count("-") == 2, "chart_data last date must be YYYY-MM-DD")
 
     try:
         float(str(payload["total_balance"]).replace(",", ""))
@@ -74,6 +78,13 @@ def validate_payload() -> None:
 
     performance = payload["performance"]
     assert_true(isinstance(performance, dict) and "1d" in performance, "performance must include 1d")
+
+    # Web UI should always reflect latest sync date on x-axis
+    last_updated_date = datetime.strptime(payload["last_updated"], "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d")
+    assert_true(
+        chart_data[-1]["date"] == last_updated_date,
+        f"chart_data latest date {chart_data[-1]['date']} != last_updated date {last_updated_date}",
+    )
 
     briefing = payload["advisor_briefing"]
     assert_true(isinstance(briefing, dict), "advisor_briefing must be an object")
