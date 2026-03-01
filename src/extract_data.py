@@ -22,6 +22,12 @@ import yfinance as yf
 from workbook_sync import WorkbookSyncError, normalize_date_str, sync_workbook
 
 try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+try:
     from openai import OpenAI
 except Exception:  # pragma: no cover
     OpenAI = None
@@ -78,13 +84,21 @@ def format_asset_label(name: str, symbol: str) -> str:
     return normalize_asset_label(name)
 
 
-def get_realtime_price(symbol: str) -> float:
+def get_realtime_price(symbol: str, mock_date: datetime = None) -> float:
     if symbol.upper() == "CASH":
         return 1.0
 
     yf_symbol = to_yf_symbol(symbol)
     try:
         ticker = yf.Ticker(yf_symbol)
+        
+        if mock_date:
+            end_date = mock_date + pd.Timedelta(days=1)
+            start_date = mock_date - pd.Timedelta(days=5)
+            history = ticker.history(start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
+            if not history.empty:
+                return float(history["Close"].dropna().iloc[-1])
+            
         fast_info = ticker.fast_info
         last_price = fast_info.get("last_price") if hasattr(fast_info, "get") else fast_info["last_price"]
         if last_price and last_price > 0:
@@ -118,7 +132,7 @@ def parse_published_at(raw_value: Any) -> str:
         return "Unknown"
 
 
-def collect_portfolio_news(symbols: List[str], max_items: int = MAX_NEWS_ITEMS) -> List[Dict[str, str]]:
+def collect_portfolio_news(symbols: List[str], max_items: int = MAX_NEWS_ITEMS, mock_date: datetime = None) -> List[Dict[str, str]]:
     news_items: List[Dict[str, str]] = []
     seen: set[str] = set()
 
@@ -136,8 +150,12 @@ def collect_portfolio_news(symbols: List[str], max_items: int = MAX_NEWS_ITEMS) 
             continue
 
         for item in raw_news:
-            title = str(item.get("title", "")).strip()
-            url = str(item.get("link") or item.get("url") or "").strip()
+            content = item.get("content", item)
+            title = str(content.get("title", "")).strip()
+            
+            url_obj = content.get("clickThroughUrl", {})
+            url = str(url_obj.get("url") if isinstance(url_obj, dict) else content.get("link") or content.get("url") or "").strip()
+            
             if not title:
                 continue
 
@@ -146,9 +164,17 @@ def collect_portfolio_news(symbols: List[str], max_items: int = MAX_NEWS_ITEMS) 
                 continue
             seen.add(unique_key)
 
-            publisher = str(item.get("publisher") or item.get("source") or "Unknown").strip()
-            published_at = parse_published_at(item.get("providerPublishTime") or item.get("published"))
-            summary = str(item.get("summary") or "").strip()
+            provider_obj = content.get("provider", {})
+            publisher = str(provider_obj.get("displayName") if isinstance(provider_obj, dict) else content.get("publisher") or content.get("source") or "Unknown").strip()
+            
+            published_at = parse_published_at(content.get("pubDate") or content.get("providerPublishTime") or content.get("published"))
+            
+            # For time travel simulation, rewrite the timestamp to look like the mock date
+            if mock_date:
+                # Force the headline to appear on the morning of the mock date
+                published_at = f"{mock_date.strftime('%Y-%m-%d')} 08:30:00 UTC"
+                
+            summary = str(content.get("summary") or "").strip()
 
             news_items.append(
                 {
@@ -171,6 +197,66 @@ def collect_portfolio_news(symbols: List[str], max_items: int = MAX_NEWS_ITEMS) 
     return news_items[:max_items]
 
 
+def collect_global_news(max_items: int = 10, mock_date: datetime = None) -> List[Dict[str, str]]:
+    """Fetch broad market news using macro proxies (e.g. S&P 500, SPY, QQQ)."""
+    print("\nFetching global market news...")
+    news_items: List[Dict[str, str]] = []
+    seen: set[str] = set()
+    
+    macro_tickers = ["^GSPC", "SPY", "QQQ"]
+    
+    for symbol in macro_tickers:
+        if len(news_items) >= max_items:
+            break
+            
+        try:
+            ticker = yf.Ticker(symbol)
+            raw_news = ticker.news or []
+            for item in raw_news:
+                content = item.get("content", item)
+                title = str(content.get("title", "")).strip()
+                
+                url_obj = content.get("clickThroughUrl", {})
+                url = str(url_obj.get("url") if isinstance(url_obj, dict) else content.get("link") or content.get("url") or "").strip()
+                
+                if not title:
+                    continue
+
+                unique_key = url or title
+                if unique_key in seen:
+                    continue
+                seen.add(unique_key)
+
+                provider_obj = content.get("provider", {})
+                publisher = str(provider_obj.get("displayName") if isinstance(provider_obj, dict) else content.get("publisher") or content.get("source") or "Unknown").strip()
+                
+                published_at = parse_published_at(content.get("pubDate") or content.get("providerPublishTime") or content.get("published"))
+                
+                # For time travel simulation, rewrite the timestamp
+                if mock_date:
+                    published_at = f"{mock_date.strftime('%Y-%m-%d')} 09:15:00 UTC"
+                
+                summary = str(content.get("summary") or "").strip()
+
+                news_items.append(
+                    {
+                        "symbol": "MACRO",
+                        "title": title,
+                        "publisher": publisher,
+                        "published_at": published_at,
+                        "url": url,
+                        "summary": summary,
+                    }
+                )
+                
+                if len(news_items) >= max_items:
+                    break
+        except Exception as exc:
+            print(f"Warning: Failed to fetch global news for {symbol}: {exc}")
+
+    return news_items
+
+
 def format_pct(value: float) -> str:
     return f"{value:+.2f}%"
 
@@ -178,7 +264,7 @@ def format_pct(value: float) -> str:
 def build_rule_based_briefing(
     assets: List[Dict[str, str]],
     perf_7d: float,
-    news_items: List[Dict[str, str]],
+    news_items: Dict[str, List[Dict[str, str]]],
 ) -> Dict[str, Any]:
     assets_map = {item["label"]: safe_float(item["value"]) for item in assets}
     total_value = sum(assets_map.values()) or 1.0
@@ -188,9 +274,16 @@ def build_rule_based_briefing(
     stocks_pct = (assets_map.get("US Stocks", 0.0) / total_value) * 100
 
     headline = "Portfolio Pulse: Balanced but Event-Sensitive"
-    if news_items:
-        first = news_items[0]
+    
+    global_news = news_items.get("global", [])
+    portfolio_news = news_items.get("portfolio", [])
+    
+    # Try to use a portfolio specific news item first, then a global one
+    if portfolio_news:
+        first = portfolio_news[0]
         headline = f"Portfolio Pulse: {first['symbol']} drives latest market narrative"
+    elif global_news:
+        headline = f"Market Pulse: Global events shape near-term outlook"
 
     macro_summary = (
         f"7-day NAV move is {format_pct(perf_7d)}. Current allocation is "
@@ -231,7 +324,8 @@ def build_rule_based_briefing(
             "Short-term market reactions to macro headlines can exceed fundamentals.",
             "Single-name concentration risk can amplify drawdowns.",
         ],
-        "news_context": news_items,
+        "news_context": portfolio_news,
+        "global_context": global_news,
         "disclaimer": "Informational only, not financial advice.",
     }
 
@@ -278,11 +372,84 @@ def sanitize_briefing(raw: Any, fallback: Dict[str, Any], news_items: List[Dict[
     }
 
 
+def generate_mock_news(
+    symbols: List[str], mock_date_str: str, api_key: str, base_url: str, model: str
+) -> Dict[str, List[Dict[str, str]]]:
+    print(f"\n[Simulation] Generating historically plausible news for {mock_date_str} via LLM...")
+    if not api_key or OpenAI is None:
+        print("Warning: Cannot generate dynamic mock news without API key. Using static hardcoded mock news.")
+        return {
+            "portfolio": [
+                {
+                    "symbol": symbols[0] if symbols else "PORTFOLIO",
+                    "title": f"Historical Simulation Alert: Major event shakes {symbols[0] if symbols else 'markets'}.",
+                    "publisher": "OpenClaw Financial",
+                    "published_at": f"{mock_date_str} 08:30:00 UTC",
+                    "url": "#",
+                    "summary": f"This is a simulated headline reflecting a major event for {symbols[0] if symbols else 'asset'} around {mock_date_str}.",
+                },
+                {
+                    "symbol": symbols[1] if len(symbols) > 1 else "PORTFOLIO",
+                    "title": f"Analysts Upgrade Outlook Amid Sector Rallies",
+                    "publisher": "Simulation Market News",
+                    "published_at": f"{mock_date_str} 09:15:00 UTC",
+                    "url": "#",
+                    "summary": f"Analysts project continued growth for assets like {symbols[1] if len(symbols) > 1 else 'this'} following strong earnings.",
+                }
+            ],
+            "global": [
+                {
+                    "symbol": "MACRO",
+                    "title": f"Global Markets React to Fed Rate Decisions",
+                    "publisher": "Macro Daily",
+                    "published_at": f"{mock_date_str} 06:00:00 UTC",
+                    "url": "#",
+                    "summary": f"On {mock_date_str}, global indices showed increased volatility as central banks signaled potential policy shifts.",
+                },
+                {
+                    "symbol": "MACRO",
+                    "title": f"Geopolitical Tensions Shape Commodity Prices",
+                    "publisher": "Global Tracker",
+                    "published_at": f"{mock_date_str} 07:45:00 UTC",
+                    "url": "#",
+                    "summary": f"Commodity markets saw significant movement leading up to {mock_date_str} due to international trade developments.",
+                }
+            ]
+        }
+
+    prompt = (
+        f"You are a mock data generator for a historical simulation. The simulated date is {mock_date_str}.\n"
+        f"Generate exactly 8 realistic financial news headlines regarding the portfolio assets {symbols}, "
+        f"and 15 realistic global macroeconomic headlines that would have appeared on or just before {mock_date_str}.\n"
+        "Return strictly a JSON object with two keys: 'portfolio' and 'global'.\n"
+        "Each is a list of objects containing: 'symbol' (use actual symbol for portfolio, or 'MACRO' for global), "
+        f"'title', 'publisher', 'published_at' (format like '{mock_date_str} 08:30:00 UTC'), 'url' (make a realistic-looking url), 'summary'."
+    )
+
+    try:
+        client = OpenAI(api_key=api_key, base_url=base_url) if base_url else OpenAI(api_key=api_key)
+        completion = client.chat.completions.create(
+            model=model,
+            temperature=0.7,
+            response_format={"type": "json_object"},
+            messages=[{"role": "system", "content": prompt}],
+        )
+        content = completion.choices[0].message.content or "{}"
+        parsed = json.loads(content)
+        return {
+            "portfolio": parsed.get("portfolio", []),
+            "global": parsed.get("global", []),
+        }
+    except Exception as exc:
+        print(f"Warning: Mock news generation failed: {exc}")
+        return {"portfolio": [], "global": []}
+
+
 def generate_llm_briefing(
     assets: List[Dict[str, str]],
     holdings: List[Dict[str, str]],
     perf_7d: float,
-    news_items: List[Dict[str, str]],
+    news_items: Dict[str, List[Dict[str, str]]],
 ) -> Dict[str, Any]:
     fallback = build_rule_based_briefing(assets, perf_7d, news_items)
 
@@ -297,14 +464,17 @@ def generate_llm_briefing(
         "portfolio_assets": assets,
         "holdings": holdings,
         "perf_7d_pct": round(perf_7d, 4),
-        "news_items": news_items,
+        "portfolio_news": news_items.get("portfolio", []),
+        "global_news": news_items.get("global", []),
     }
 
     system_prompt = (
-        "You are a cautious portfolio analyst. "
+        "You are an enterprise-grade portfolio analyst. "
+        "Analyze the provided `portfolio_news` and `global_news`. "
+        "Crucially, tie major global events (e.g., political shifts, macro data) directly to the user's specific holdings and their relative weights. "
         "Use only provided data and return strict JSON with keys: "
         "headline, macro_summary, verdict, suggestions, risks. "
-        "suggestions items must include: asset, action, rationale."
+        "suggestions items must include: asset, action (Hold, Accumulate, Reduce, etc.), rationale (explaining the direct impact of global/portfolio news on this specific asset weighting)."
     )
 
     try:
@@ -320,7 +490,7 @@ def generate_llm_briefing(
         )
         content = completion.choices[0].message.content or "{}"
         parsed = json.loads(content)
-        return sanitize_briefing(parsed, fallback, news_items, source=f"llm:{model}")
+        return sanitize_briefing(parsed, fallback, news_items.get("portfolio", []), source=f"llm:{model}")
     except Exception as exc:
         print(f"Warning: LLM briefing failed, using fallback: {exc}")
         return fallback
@@ -359,9 +529,13 @@ def briefing_to_insights(briefing: Dict[str, Any]) -> List[Dict[str, str]]:
     return insights
 
 
-def extract_data() -> Dict[str, Any]:
+def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
     if not os.path.exists(INPUT_PATH):
         raise FileNotFoundError(f"{INPUT_PATH} not found in repository root")
+        
+    sync_now = datetime.now()
+    if mock_date_str:
+        sync_now = datetime.strptime(mock_date_str, "%Y-%m-%d")
 
     print("Reading local Excel Holdings (Broker Export Format)...")
     df_holdings = pd.read_excel(INPUT_PATH, sheet_name="Holdings")
@@ -387,7 +561,7 @@ def extract_data() -> Dict[str, Any]:
         name = str(row.get("name", "Unknown")).strip()
         qty = safe_float(row.get("quantity"))
 
-        price = get_realtime_price(symbol)
+        price = get_realtime_price(symbol, mock_date=sync_now if mock_date_str else None)
         market_value = qty * price
         total_balance += market_value
 
@@ -423,19 +597,21 @@ def extract_data() -> Dict[str, Any]:
         {"label": "US Stocks", "value": f"{assets_grouped.get('US Stocks', 0.0):,.2f}"},
     ]
 
-    sync_now = datetime.now()
     try:
-        meta = sync_workbook(
-            workbook_path=INPUT_PATH,
-            sync_dt=sync_now,
-            holding_updates=holding_updates,
-            assets_grouped=assets_grouped,
-            total_balance=total_balance,
-        )
-        print(
-            f"Workbook sync OK. last_daily_date={meta['last_daily_date']} "
-            f"daily_count={meta['daily_count']} backup={meta['backup_path']}"
-        )
+        if mock_date_str:
+            print("Skipping workbook sync for historical simulation.")
+        else:
+            meta = sync_workbook(
+                workbook_path=INPUT_PATH,
+                sync_dt=sync_now,
+                holding_updates=holding_updates,
+                assets_grouped=assets_grouped,
+                total_balance=total_balance,
+            )
+            print(
+                f"Workbook sync OK. last_daily_date={meta['last_daily_date']} "
+                f"daily_count={meta['daily_count']} backup={meta['backup_path']}"
+            )
     except WorkbookSyncError as exc:
         raise RuntimeError(f"Workbook sync failed: {exc}") from exc
 
@@ -449,6 +625,9 @@ def extract_data() -> Dict[str, Any]:
     df_daily["date"] = df_daily["date"].apply(normalize_date_str)
     df_daily["nav"] = df_daily["nav"].apply(safe_float)
     df_daily = df_daily[df_daily["date"] != ""].copy()
+    
+    if mock_date_str:
+        df_daily = df_daily[df_daily["date"] <= mock_date_str].copy()
 
     nav_series = df_daily["nav"].dropna()
     if nav_series.empty:
@@ -465,12 +644,25 @@ def extract_data() -> Dict[str, Any]:
     if not chart_data:
         raise ValueError("chart_data generated empty from Daily sheet")
 
-    print("\nCollecting latest portfolio-related news...")
-    news_items = collect_portfolio_news(tracked_symbols, max_items=MAX_NEWS_ITEMS)
-    print(f"Collected {len(news_items)} news items")
+    if mock_date_str:
+        api_key = os.getenv("GLM_API_KEY") or os.getenv("OPENAI_API_KEY", "").strip()
+        base_url = os.getenv("GLM_BASE_URL")
+        model = os.getenv("GLM_MODEL") or os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
+        all_news = generate_mock_news(tracked_symbols, mock_date_str, api_key, base_url, model)
+        portfolio_news = all_news.get("portfolio", [])
+        global_news = all_news.get("global", [])
+    else:
+        print("\nCollecting latest portfolio-related news...")
+        portfolio_news = collect_portfolio_news(tracked_symbols, max_items=MAX_NEWS_ITEMS, mock_date=None)
+        print(f"Collected {len(portfolio_news)} portfolio news items")
+        
+        global_news = collect_global_news(max_items=15, mock_date=None)
+        print(f"Collected {len(global_news)} global news items")
+        
+        all_news = {"portfolio": portfolio_news, "global": global_news}
 
     print("Generating personalized advisor briefing...")
-    advisor_briefing = generate_llm_briefing(final_assets, live_holdings, perf_7d, news_items)
+    advisor_briefing = generate_llm_briefing(final_assets, live_holdings, perf_7d, all_news)
     insights = briefing_to_insights(advisor_briefing)
 
     response = {
@@ -481,6 +673,7 @@ def extract_data() -> Dict[str, Any]:
         "last_updated": sync_now.strftime("%Y-%m-%d %H:%M:%S"),
         "insights": insights,
         "advisor_briefing": advisor_briefing,
+        "daily_news": global_news,
         "performance": {"1d": "Live", "summary": "Broker Export Integration"},
     }
 
@@ -492,8 +685,13 @@ def extract_data() -> Dict[str, Any]:
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Synchronize asset data.")
+    parser.add_argument("--date", type=str, help="Mock date (YYYY-MM-DD)")
+    args = parser.parse_args()
+    
     try:
-        extract_data()
+        extract_data(mock_date_str=args.date)
     except Exception as exc:
         print(f"Error orchestrating pipeline: {exc}", file=sys.stderr)
-        raise
+        sys.exit(1)

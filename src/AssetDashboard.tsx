@@ -129,11 +129,12 @@ const advisorSuggestion = advisorBriefing?.suggestions?.[0];
 
 interface AssetDashboardProps {
   onOpenAdvisor?: () => void;
+  onOpenNews?: () => void;
   isPrivacyMode: boolean;
   setIsPrivacyMode: (val: boolean) => void;
 }
 
-export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPrivacyMode }: AssetDashboardProps) {
+export default function AssetDashboard({ onOpenAdvisor, onOpenNews, isPrivacyMode, setIsPrivacyMode }: AssetDashboardProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
 
@@ -166,33 +167,41 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-40 pointer-events-none"></div>
 
       <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-12 relative z-10">
-        
+
         {/* Header */}
-        <header className="flex justify-between items-center">
+        <header className="flex justify-between items-center bg-white/60 backdrop-blur-md p-4 rounded-3xl border border-slate-200/50 shadow-sm">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-blue-200 shadow-lg">
-              <ShieldCheck size={18} className="text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-blue-200 shadow-xl">
+              <ShieldCheck size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-slate-800 text-sm font-bold tracking-tight uppercase">Asset Guardian</h1>
-              <p className="text-[10px] text-slate-400 font-mono uppercase tracking-widest leading-none">Trust Architecture v2.5</p>
+              <h1 className="text-slate-900 text-[15px] font-bold tracking-tight">Asset Guardian</h1>
+              <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest leading-none mt-0.5">Trust Architecture v2.5</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="flex bg-slate-200/50 p-1 rounded-xl">
-               {tabs.map((tab) => (
-                 <button 
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => onOpenNews?.()}
+              className="flex items-center space-x-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg transition-all"
+            >
+              <Activity size={14} />
+              <span>Daily News</span>
+            </button>
+
+            <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200/50">
+              {tabs.map((tab) => (
+                <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`p-2 rounded-lg transition-all ${activeTab === tab.id ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
-                 >
-                   {tab.icon}
-                 </button>
-               ))}
+                  className={`p-2 rounded-lg transition-all ${activeTab === tab.id ? 'bg-white shadow-sm text-blue-600 font-medium' : 'text-slate-500 hover:text-slate-800'}`}
+                >
+                  {tab.icon}
+                </button>
+              ))}
             </div>
-            <button 
+            <button
               onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-              className={`p-2 rounded-xl border transition-all shadow-sm ${isPrivacyMode ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`}
+              className={`p-2.5 rounded-xl border transition-all shadow-sm ${isPrivacyMode ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
             >
               {isPrivacyMode ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -226,7 +235,7 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={filteredChartData} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
                     <defs>
-                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/><stop offset="95%" stopColor="#2563eb" stopOpacity={0}/></linearGradient>
+                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2563eb" stopOpacity={0.1} /><stop offset="95%" stopColor="#2563eb" stopOpacity={0} /></linearGradient>
                     </defs>
                     <YAxis domain={['dataMin', 'dataMax']} hide={true} />
                     <XAxis
@@ -315,7 +324,7 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-8 rounded-[2rem] bg-blue-50 border border-blue-100 flex items-start space-x-4">
                 <Sparkles size={18} className="text-blue-600 mt-1 flex-shrink-0" />
                 <div className="space-y-1">
@@ -328,7 +337,7 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
         </AnimatePresence>
 
         {/* AI Insights & Robo-Advisor (Apple Interactive Widget Style) */}
-        <motion.section 
+        <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -348,7 +357,7 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
                 <span className="px-2.5 py-1 rounded-full bg-slate-100/80 text-slate-500 text-[10px] font-semibold tracking-widest border border-slate-200/50 uppercase">
                   Just Updated
                 </span>
-                <a 
+                <a
                   href="#"
                   onClick={(e) => { e.preventDefault(); onOpenAdvisor?.(); }}
                   className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-200 transition-colors cursor-pointer group-hover:bg-slate-100"
@@ -358,11 +367,11 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
                 </a>
               </div>
             </div>
-            
+
             <h3 className="text-2xl md:text-3xl text-slate-900 font-semibold tracking-tighter">
               {advisorHeadline}
             </h3>
-            
+
             <p className="text-slate-500 leading-relaxed text-sm md:text-[15px] font-normal tracking-wide max-w-2xl">
               {advisorSummary}
               {advisorSuggestion?.asset ? (
@@ -373,8 +382,8 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
             </p>
 
             <div className="pt-6 flex items-center justify-between border-t border-slate-100 mt-8">
-              <a 
-                href="#" 
+              <a
+                href="#"
                 onClick={(e) => { e.preventDefault(); onOpenAdvisor?.(); }}
                 className="text-blue-600 text-sm font-medium hover:text-blue-700 hover:underline underline-offset-4 cursor-pointer"
               >

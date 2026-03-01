@@ -28,3 +28,5 @@ public/assets.xlsx
 .env
 .env.*
 backups/
+__pycache__/
+*.pyc
