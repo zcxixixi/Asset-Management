@@ -1,0 +1,14 @@
+{
+    "generated_at": "2026-03-01T12:00:00Z",
+    "source": "AdvisorAgent_Fallback",
+    "headline": "Portfolio Sync Complete (Advisor Analysis Unavailable)",
+    "macro_summary": "The automated advisory service is currently unavailable. Portfolio holdings have been synced successfully based on the latest market data.",
+    "verdict": "NEUTRAL",
+    "suggestions": [],
+    "risks": [
+        "Advisory service timeout or validation failure."
+    ],
+    "news_context": [],
+    "global_context": [],
+    "disclaimer": "This briefing is a fallback message. It does not constitute financial advice."
+}
