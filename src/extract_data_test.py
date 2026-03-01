@@ -11,7 +11,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 INPUT_PATH = REPO_ROOT / "assets.xlsx"
-OUTPUT_PATH = REPO_ROOT / "src" / "data.json"
+PUBLIC_OUTPUT_PATH = REPO_ROOT / "public" / "data.json"
+BUNDLED_OUTPUT_PATH = REPO_ROOT / "src" / "data.json"
 
 
 def fail(message: str) -> None:
@@ -39,10 +40,18 @@ def run_extract_data() -> None:
 
 def validate_payload() -> None:
     assert_true(INPUT_PATH.exists(), "assets.xlsx is missing")
-    assert_true(OUTPUT_PATH.exists(), "src/data.json was not generated")
+    assert_true(PUBLIC_OUTPUT_PATH.exists(), "public/data.json was not generated")
+    assert_true(BUNDLED_OUTPUT_PATH.exists(), "src/data.json was not generated")
 
-    with OUTPUT_PATH.open("r", encoding="utf-8") as f:
+    with PUBLIC_OUTPUT_PATH.open("r", encoding="utf-8") as f:
         payload = json.load(f)
+    with BUNDLED_OUTPUT_PATH.open("r", encoding="utf-8") as f:
+        bundled_payload = json.load(f)
+
+    assert_true(
+        payload.get("last_updated") == bundled_payload.get("last_updated"),
+        "public/data.json and src/data.json last_updated mismatch",
+    )
 
     required_keys = {
         "assets",

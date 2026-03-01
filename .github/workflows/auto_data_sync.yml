@@ -47,7 +47,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout main
-          git add src/data.json
+          git add assets.xlsx src/data.json public/data.json
           git diff --cached --quiet && echo "No changes to commit" && exit 0
           git commit -m "chore: process local assets.xlsx updates"
           git push origin HEAD:main

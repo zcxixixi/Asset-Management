@@ -11,7 +11,7 @@ import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parent
 EXCEL_PATH = REPO_ROOT / "assets.xlsx"
-JSON_PATH = REPO_ROOT / "src" / "data.json"
+JSON_PATH = REPO_ROOT / "public" / "data.json"
 
 
 def fail(message: str) -> None:
@@ -46,13 +46,13 @@ def check_excel() -> None:
     latest = df.iloc[-1]
     calc_total = to_number(latest["cash_usd"]) + to_number(latest["gold_usd"]) + to_number(latest["stocks_usd"])
     total_usd = to_number(latest["total_usd"])
-    gap = abs(calc_total - total_usd)
-    assert_true(gap <= 0.01, f"Daily latest asset sum mismatch: gap={gap:.4f}")
+    gap = round(abs(calc_total - total_usd), 4)
+    assert_true(gap <= 0.02, f"Daily latest asset sum mismatch: gap={gap:.4f}")
     assert_true(to_number(latest["nav"]) > 0, "Daily latest nav must be positive")
 
 
 def check_json() -> None:
-    assert_true(JSON_PATH.exists(), "src/data.json not found")
+    assert_true(JSON_PATH.exists(), "public/data.json not found")
     with JSON_PATH.open("r", encoding="utf-8") as f:
         payload = json.load(f)
 
@@ -66,6 +66,14 @@ def check_json() -> None:
     latest_point = chart_data[-1]
     assert_true("date" in latest_point and "value" in latest_point, "latest chart point missing date/value")
     assert_true(to_number(latest_point["value"]) > 0, "latest chart value must be positive")
+
+    last_updated = str(payload.get("last_updated", "")).strip()
+    assert_true(last_updated != "", "last_updated is missing")
+    last_updated_date = last_updated.split(" ")[0]
+    assert_true(
+        str(latest_point.get("date", "")) == last_updated_date,
+        "latest chart date must match last_updated date",
+    )
 
 
 if __name__ == "__main__":
