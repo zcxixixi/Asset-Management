@@ -6,11 +6,11 @@
     },
     {
       "label": "Gold USD",
-      "value": "1,505.08"
+      "value": "1,455.81"
     },
     {
       "label": "US Stocks",
-      "value": "3,199.70"
+      "value": "3,221.95"
     }
   ],
   "holdings": [
@@ -18,31 +18,31 @@
       "symbol": "NVDA.US",
       "name": "NVIDIA Corp.",
       "qty": "0.734",
-      "value": "130.06"
+      "value": "139.33"
     },
     {
       "symbol": "SGOV.US",
       "name": "iShares 0-3 Month Treasury Bond ETF",
       "qty": "15.1446",
-      "value": "1,524.15"
+      "value": "1,523.09"
     },
     {
       "symbol": "TSLA.US",
       "name": "Tesla, Inc.",
       "qty": "1.2254",
-      "value": "493.24"
+      "value": "504.64"
     },
     {
       "symbol": "QQQ.US",
       "name": "NASDAQ 100 ETF",
       "qty": "1.7327",
-      "value": "1,052.25"
+      "value": "1,054.89"
     },
     {
       "symbol": "GOLD.CN",
       "name": "博时黄金ETF联接C(估算USD)",
       "qty": "0.28775",
-      "value": "1,505.08"
+      "value": "1,455.81"
     }
   ],
   "chart_data": [
@@ -765,46 +765,10 @@
     {
       "date": "2026-02-20",
       "value": 1.26
-    },
-    {
-      "date": "2026-02-21",
-      "value": 1.26
-    },
-    {
-      "date": "2026-02-22",
-      "value": 1.27
-    },
-    {
-      "date": "2026-02-23",
-      "value": 1.25
-    },
-    {
-      "date": "2026-02-24",
-      "value": 1.2674
-    },
-    {
-      "date": "2026-02-25",
-      "value": 1.2774
-    },
-    {
-      "date": "2026-02-26",
-      "value": 1.27
-    },
-    {
-      "date": "2026-02-27",
-      "value": 1.27
-    },
-    {
-      "date": "2026-02-28",
-      "value": 1.27
-    },
-    {
-      "date": "2026-03-01",
-      "value": 1.2677
     }
   ],
-  "total_balance": "5,276.50",
-  "last_updated": "2026-03-01 11:10:48",
+  "total_balance": "5,249.49",
+  "last_updated": "2026-02-20 00:00:00",
   "insights": [
     {
       "type": "opportunity",
@@ -823,10 +787,10 @@
     }
   ],
   "advisor_briefing": {
-    "generated_at": "2026-03-01 11:10:51",
+    "generated_at": "2026-03-01 11:58:47",
     "source": "rule-based",
-    "headline": "Portfolio Pulse: Balanced but Event-Sensitive",
-    "macro_summary": "7-day NAV move is -0.18%. Current allocation is Cash 10.8%, Gold 28.5%, US Stocks 60.6%. Portfolio remains diversified, but near-term volatility can be elevated around headline-heavy sessions.",
+    "headline": "Portfolio Pulse: NVDA.US drives latest market narrative",
+    "macro_summary": "7-day NAV move is +3.28%. Current allocation is Cash 10.9%, Gold 27.7%, US Stocks 61.4%. Portfolio remains diversified, but near-term volatility can be elevated around headline-heavy sessions.",
     "verdict": "Keep diversified core positions and adjust incrementally, not aggressively.",
     "suggestions": [
       {
@@ -849,9 +813,62 @@
       "Short-term market reactions to macro headlines can exceed fundamentals.",
       "Single-name concentration risk can amplify drawdowns."
     ],
-    "news_context": [],
+    "news_context": [
+      {
+        "symbol": "NVDA.US",
+        "title": "Historical Simulation Alert: Major event shakes NVDA.US.",
+        "publisher": "OpenClaw Financial",
+        "published_at": "2026-02-20 08:30:00 UTC",
+        "url": "#",
+        "summary": "This is a simulated headline reflecting a major event for NVDA.US around 2026-02-20."
+      },
+      {
+        "symbol": "SGOV.US",
+        "title": "Analysts Upgrade Outlook Amid Sector Rallies",
+        "publisher": "Simulation Market News",
+        "published_at": "2026-02-20 09:15:00 UTC",
+        "url": "#",
+        "summary": "Analysts project continued growth for assets like SGOV.US following strong earnings."
+      }
+    ],
+    "global_context": [
+      {
+        "symbol": "MACRO",
+        "title": "Global Markets React to Fed Rate Decisions",
+        "publisher": "Macro Daily",
+        "published_at": "2026-02-20 06:00:00 UTC",
+        "url": "#",
+        "summary": "On 2026-02-20, global indices showed increased volatility as central banks signaled potential policy shifts."
+      },
+      {
+        "symbol": "MACRO",
+        "title": "Geopolitical Tensions Shape Commodity Prices",
+        "publisher": "Global Tracker",
+        "published_at": "2026-02-20 07:45:00 UTC",
+        "url": "#",
+        "summary": "Commodity markets saw significant movement leading up to 2026-02-20 due to international trade developments."
+      }
+    ],
     "disclaimer": "Informational only, not financial advice."
   },
+  "daily_news": [
+    {
+      "symbol": "MACRO",
+      "title": "Global Markets React to Fed Rate Decisions",
+      "publisher": "Macro Daily",
+      "published_at": "2026-02-20 06:00:00 UTC",
+      "url": "#",
+      "summary": "On 2026-02-20, global indices showed increased volatility as central banks signaled potential policy shifts."
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Geopolitical Tensions Shape Commodity Prices",
+      "publisher": "Global Tracker",
+      "published_at": "2026-02-20 07:45:00 UTC",
+      "url": "#",
+      "summary": "Commodity markets saw significant movement leading up to 2026-02-20 due to international trade developments."
+    }
+  ],
   "performance": {
     "1d": "Live",
     "summary": "Broker Export Integration"
