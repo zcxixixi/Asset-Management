@@ -1,87 +1,61 @@
-# Asset-Management
+# Asset Management
 
-Minimal asset dashboard with automated workbook sync, market/news enrichment, and GitHub Pages delivery.
+Personal portfolio tracker with AI-driven daily briefings, delivered via Telegram.
 
-## Core Features
+## Architecture
 
-- Reads holdings and NAV history from `assets.xlsx`.
-- Updates portfolio values using `yfinance`.
-- Syncs workbook tables (`Holdings`, `Daily`, `Chart`, `Exec`) with integrity checks.
-- Writes web payload to:
-  - `public/data.json` (runtime source, preferred by UI)
-  - `src/data.json` (bundled fallback)
-- Generates AI advisor briefing from portfolio + macro news context.
-- Supports historical simulation mode via `--date YYYY-MM-DD`.
-
-## Data Flow
-
-1. Run `python src/extract_data.py`.
-2. Script updates workbook and JSON payloads.
-3. React UI loads live payload from `public/data.json` (cache-busted request), then falls back to bundled data when needed.
-
-## Local Setup
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-npm ci
+```
+assets.xlsx → extract_data.py → data.json → Dashboard (GitHub Pages)
+                    ↓
+           news_collector.py  →  briefing_agent.py  →  telegram_bot.py
+           (yfinance news)       (Gemini LLM)          (Telegram API)
 ```
 
-## Local Usage
+**Three agents, one pipeline, zero manual steps.**
+
+## File Map
+
+| File | Purpose |
+|------|---------|
+| `src/extract_data.py` | Main orchestrator — reads Excel, fetches prices, runs agents, writes JSON |
+| `src/news_collector.py` | Agent 1 — collects and ranks news per holding via yfinance |
+| `src/briefing_agent.py` | Agent 2 — generates AI analysis via LLM (Gemini/GLM) |
+| `src/telegram_bot.py` | Agent 3 — formats and sends Telegram broadcasts |
+| `src/advisor_contract.py` | Pydantic schema + fallback (the "contract" between agents) |
+| `src/workbook_sync.py` | Excel read/write + daily row sync |
+| `assets.xlsx` | Your portfolio (single source of truth) |
+
+## Run Manually
 
 ```bash
-# Normal sync (today / live)
-python src/extract_data.py
+# 1. Refresh data + AI analysis
+OPENAI_API_KEY="your-key" OPENAI_BASE_URL="http://127.0.0.1:8045/v1" OPENAI_MODEL="gemini-3-flash" \
+  python3 src/extract_data.py
 
-# Historical simulation
-python src/extract_data.py --date 2026-02-27
-
-# Frontend
-npm run dev
+# 2. Send to Telegram
+TELEGRAM_BOT_TOKEN="your-token" TELEGRAM_CHAT_ID="your-id" \
+  python3 src/telegram_bot.py --time_of_day morning|afternoon|evening
 ```
 
-## Validation
+## Automation
+
+| What | Who | When |
+|------|-----|------|
+| Pipeline + Telegram | Nanobot Cron (`~/.nanobot/cron/jobs.json`) | Weekdays 8:30, 13:30, 20:00 HKT |
+| CI (lint + tests) | GitHub Actions `auto_test.yml` | Every push |
+| Deploy dashboard | GitHub Actions `deploy-pages.yml` | Push to main |
+
+## Dev Server
 
 ```bash
-python src/extract_data_test.py
-python src/backfill_regression_test.py
-python src/stability_test.py
-python src/test_glm_integration.py
-python script_real_stress_test.py
-npm run lint
-npm run build
+npm install && npm run dev
 ```
 
-Latest robustness results are tracked in [TEST_LOG.md](/Users/kaijimima1234/Desktop/openclaw/Asset-Management-codex-sync/TEST_LOG.md).
+## Tests
 
-## Automation (GitHub Actions)
-
-- `Auto Data Sync`: every 6 hours; regenerates `assets.xlsx + public/data.json + src/data.json`, commits to `main`.
-- `Auto Test`: runs frontend validation + Python schema/regression/LLM/heartbeat checks on push/PR.
-- `Deploy Pages`: builds and deploys `dist` to GitHub Pages.
-
-## Optional Secrets
-
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL`
-- `GLM_API_KEY`
-- `GLM_BASE_URL`
-- `GLM_MODEL`
-
-## Minimal Layout
-
-```text
-.github/workflows/
-assets.xlsx
-public/data.json
-src/
-  extract_data.py
-  workbook_sync.py
-  extract_data_test.py
-  backfill_regression_test.py
-  stability_test.py
-  test_glm_integration.py
-  data.json
-  live_data.ts
+```bash
+python3 src/extract_data_test.py
+python3 src/backfill_regression_test.py
+python3 src/stability_test.py
+python3 src/advisor_contract_test.py
 ```
