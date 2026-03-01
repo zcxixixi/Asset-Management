@@ -43,7 +43,16 @@ def validate_payload() -> None:
     with OUTPUT_PATH.open("r", encoding="utf-8") as f:
         payload = json.load(f)
 
-    required_keys = {"assets", "holdings", "chart_data", "total_balance", "last_updated", "insights", "performance"}
+    required_keys = {
+        "assets",
+        "holdings",
+        "chart_data",
+        "total_balance",
+        "last_updated",
+        "insights",
+        "advisor_briefing",
+        "performance",
+    }
     missing = required_keys - payload.keys()
     assert_true(not missing, f"data.json missing keys: {sorted(missing)}")
 
@@ -65,6 +74,13 @@ def validate_payload() -> None:
 
     performance = payload["performance"]
     assert_true(isinstance(performance, dict) and "1d" in performance, "performance must include 1d")
+
+    briefing = payload["advisor_briefing"]
+    assert_true(isinstance(briefing, dict), "advisor_briefing must be an object")
+    for key in ["headline", "macro_summary", "verdict", "suggestions", "risks", "news_context", "source"]:
+        assert_true(key in briefing, f"advisor_briefing missing key: {key}")
+    assert_true(isinstance(briefing["suggestions"], list), "advisor_briefing.suggestions must be a list")
+    assert_true(isinstance(briefing["risks"], list), "advisor_briefing.risks must be a list")
 
 
 if __name__ == "__main__":

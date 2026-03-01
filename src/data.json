@@ -796,19 +796,54 @@
     }
   ],
   "total_balance": "5,276.50",
-  "last_updated": "2026-02-28 18:36:28",
+  "last_updated": "2026-03-01 10:30:04",
   "insights": [
     {
-      "type": "opportunity",
-      "asset": "NVIDIA Corp",
-      "text": "Real-time AI ticker updates successfully firing via local yfinance engine."
+      "type": "neutral",
+      "asset": "Cash USD",
+      "text": "Cash buffer is moderate; keeping some dry powder supports flexibility during volatility spikes."
     },
     {
-      "type": "neutral",
-      "asset": "Portfolio",
-      "text": "7-Day tracking NAV shift stands at +0.79%."
+      "type": "opportunity",
+      "asset": "US Stocks",
+      "text": "Momentum is not deteriorating sharply. Keep core equity allocation while reviewing valuation-sensitive names."
+    },
+    {
+      "type": "warning",
+      "asset": "Gold USD",
+      "text": "Gold weight already provides macro hedge coverage against rate and risk-off uncertainty."
     }
   ],
+  "advisor_briefing": {
+    "generated_at": "2026-03-01 10:30:04",
+    "source": "rule-based",
+    "headline": "Portfolio Pulse: Balanced but Event-Sensitive",
+    "macro_summary": "7-day NAV move is +0.79%. Current allocation is Cash 10.8%, Gold 28.5%, US Stocks 60.6%. Portfolio remains diversified, but near-term volatility can be elevated around headline-heavy sessions.",
+    "verdict": "Keep diversified core positions and adjust incrementally, not aggressively.",
+    "suggestions": [
+      {
+        "asset": "Cash USD",
+        "action": "Maintain reserve",
+        "rationale": "Cash buffer is moderate; keeping some dry powder supports flexibility during volatility spikes."
+      },
+      {
+        "asset": "US Stocks",
+        "action": "Hold core exposure",
+        "rationale": "Momentum is not deteriorating sharply. Keep core equity allocation while reviewing valuation-sensitive names."
+      },
+      {
+        "asset": "Gold USD",
+        "action": "Keep hedge",
+        "rationale": "Gold weight already provides macro hedge coverage against rate and risk-off uncertainty."
+      }
+    ],
+    "risks": [
+      "Short-term market reactions to macro headlines can exceed fundamentals.",
+      "Single-name concentration risk can amplify drawdowns."
+    ],
+    "news_context": [],
+    "disclaimer": "Informational only, not financial advice."
+  },
   "performance": {
     "1d": "Live",
     "summary": "Broker Export Integration"

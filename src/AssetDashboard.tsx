@@ -59,6 +59,19 @@ interface RawChartDataPoint {
   total_usd?: number;
 }
 
+interface AdvisorSuggestion {
+  asset?: string;
+  action?: string;
+  rationale?: string;
+}
+
+interface AdvisorBriefingData {
+  headline?: string;
+  macro_summary?: string;
+  verdict?: string;
+  suggestions?: AdvisorSuggestion[];
+}
+
 interface RawDashboardData {
   total_balance?: string | number;
   performance?: { '1d'?: string | number };
@@ -69,6 +82,7 @@ interface RawDashboardData {
   summary?: RawSummary;
   daily_data?: { date?: string; total_usd?: number }[];
   last_updated?: string;
+  advisor_briefing?: AdvisorBriefingData;
 }
 
 const rawData = dashboardDataRaw as RawDashboardData;
@@ -105,6 +119,13 @@ const dashboardData: DashboardData = {
     steps: rawData.diagnostics?.steps ?? [{ name: 'Data Load', status: 'Success' }],
   },
 };
+
+const advisorBriefing = rawData.advisor_briefing;
+const advisorHeadline = advisorBriefing?.headline ?? 'Portfolio Pulse: Balanced but Event-Sensitive';
+const advisorSummary =
+  advisorBriefing?.macro_summary ??
+  'No live AI briefing available yet. Keep diversified allocation and rebalance with discipline.';
+const advisorSuggestion = advisorBriefing?.suggestions?.[0];
 
 interface AssetDashboardProps {
   onOpenAdvisor?: () => void;
@@ -339,11 +360,16 @@ export default function AssetDashboard({ onOpenAdvisor, isPrivacyMode, setIsPriv
             </div>
             
             <h3 className="text-2xl md:text-3xl text-slate-900 font-semibold tracking-tighter">
-              Rate Cut Expectations Rise
+              {advisorHeadline}
             </h3>
             
             <p className="text-slate-500 leading-relaxed text-sm md:text-[15px] font-normal tracking-wide max-w-2xl">
-              The Federal Reserve strongly hints at upcoming rate cuts. Your <span className="text-slate-900 font-semibold underline decoration-slate-200 underline-offset-4 pointer-events-none">Gold USD</span> position ({isPrivacyMode ? '••••••' : dashboardData.assets.find((asset) => asset.label === 'Gold USD')?.value}) is expected to directly benefit as a hedge asset; we recommend continuing to hold. Prepare for potential sector rotation in the <span className="text-slate-900 font-semibold underline decoration-slate-200 underline-offset-4 pointer-events-none">US Stocks</span> portion ({isPrivacyMode ? '••••••' : dashboardData.assets.find((asset) => asset.label === 'US Stocks')?.value}) of your portfolio.
+              {advisorSummary}
+              {advisorSuggestion?.asset ? (
+                <>
+                  {' '}Primary action: <span className="text-slate-900 font-semibold underline decoration-slate-200 underline-offset-4 pointer-events-none">{advisorSuggestion.asset}</span> — {advisorSuggestion.action || 'Hold'}.
+                </>
+              ) : null}
             </p>
 
             <div className="pt-6 flex items-center justify-between border-t border-slate-100 mt-8">
