@@ -24,7 +24,6 @@ from workbook_sync import WorkbookSyncError, normalize_date_str, sync_workbook
 from news_collector import get_portfolio_context
 from briefing_agent import generate_briefing
 from advisor_contract import generate_fallback
-from run_advisor_pipeline import save_data
 
 try:
     from dotenv import load_dotenv
