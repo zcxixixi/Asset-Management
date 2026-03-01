@@ -4,7 +4,7 @@ Regression test for Feb 24-27 autofill window.
 Validates that:
 1) Daily sheet contains the expected dates.
 2) Per-day asset sum matches total_usd.
-3) src/data.json chart_data contains all expected dates.
+3) public/data.json chart_data contains all expected dates.
 """
 import json
 from pathlib import Path
@@ -13,7 +13,7 @@ import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 INPUT_PATH = REPO_ROOT / "assets.xlsx"
-OUTPUT_PATH = REPO_ROOT / "src" / "data.json"
+OUTPUT_PATH = REPO_ROOT / "public" / "data.json"
 EXPECTED_DATES = ["2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27"]
 
 

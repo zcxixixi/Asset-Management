@@ -6,7 +6,7 @@ Minimal personal asset dashboard with automated sync from `assets.xlsx`.
 
 - Reads holdings and NAV history from `assets.xlsx`
 - Fetches live prices with `yfinance`
-- Writes frontend data to `src/data.json`
+- Writes synchronized frontend data to `public/data.json` (runtime) and `src/data.json` (bundled fallback)
 - Generates `advisor_briefing` from holdings + latest ticker news
 - Uses LLM analysis when `OPENAI_API_KEY` is available
 - Falls back to deterministic rule-based briefing when key is missing
@@ -14,6 +14,8 @@ Minimal personal asset dashboard with automated sync from `assets.xlsx`.
 ## Local run
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 python src/extract_data.py
 npm ci
@@ -33,6 +35,7 @@ npm run build
 ## GitHub Actions
 
 - `Auto Data Sync`: every 6 hours, regenerates `src/data.json`, commits updates
+- `Auto Data Sync`: every 6 hours, regenerates `assets.xlsx + public/data.json + src/data.json`, commits updates
 - `Auto Test`: validates extraction and regression checks
 - `Heartbeat 24/7 Stress Test`: 5-minute health probe
 - `Deploy Pages`: builds and deploys `dist` to GitHub Pages

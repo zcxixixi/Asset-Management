@@ -30,3 +30,4 @@ public/assets.xlsx
 backups/
 __pycache__/
 *.pyc
+.venv/

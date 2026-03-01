@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Sparkles, TrendingUp, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
-import dashboardData from './data.json';
+import { bundledDashboardData, fetchLiveDashboardData } from './live_data';
 
 interface AdvisorBriefingProps {
   onBack: () => void;
@@ -92,8 +92,25 @@ const actionToInsightType = (action: string): Insight['type'] => {
 };
 
 export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefingProps) {
+  const [typedData, setTypedData] = useState<AdvisorPayload>(bundledDashboardData as AdvisorPayload);
+
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    let alive = true;
+    fetchLiveDashboardData()
+      .then((payload) => {
+        if (alive) {
+          setTypedData(payload as AdvisorPayload);
+        }
+      })
+      .catch(() => {
+        // Keep bundled fallback when live payload fetch fails.
+      });
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const getImpactIcon = (type: Insight['type']) => {
@@ -118,7 +135,6 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
     }
   };
 
-  const typedData = dashboardData as AdvisorPayload;
   const report: AdvisorBriefingData = typedData.advisor_briefing ?? FALLBACK_REPORT;
   const macroSummary = (report.macro_summary || FALLBACK_REPORT.macro_summary).trim();
 
