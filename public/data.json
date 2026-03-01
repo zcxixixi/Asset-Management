@@ -6,7 +6,7 @@
     },
     {
       "label": "Gold USD",
-      "value": "1,505.08"
+      "value": "1,510.08"
     },
     {
       "label": "US Stocks",
@@ -42,7 +42,7 @@
       "symbol": "GOLD.CN",
       "name": "博时黄金ETF联接C(估算USD)",
       "qty": "0.28775",
-      "value": "1,505.08"
+      "value": "1,510.08"
     }
   ],
   "chart_data": [
@@ -800,58 +800,158 @@
     },
     {
       "date": "2026-03-01",
-      "value": 1.2677
+      "value": 1.2689
     }
   ],
-  "total_balance": "5,276.50",
-  "last_updated": "2026-03-01 11:55:09",
+  "total_balance": "5,281.51",
+  "last_updated": "2026-03-01 17:58:18",
   "insights": [
     {
-      "type": "opportunity",
-      "asset": "Cash USD",
-      "text": "Use staged allocation to control timing risk and keep flexibility."
+      "type": "neutral",
+      "asset": "TSLA.US",
+      "text": "You are running a reckless gamble that ignores historical indicators showing the Trump bull market is exhausted. By maintaining nearly 80% weight in a single high-beta asset while Buffett moves to a $187 billion cash fortress, you are betting against the highest conviction signal in the market. The recent inflation shock will punish this valuation first; liquidate half of this position to secure what capital you have left before the liquidity drain accelerates."
     },
     {
-      "type": "opportunity",
-      "asset": "US Stocks",
-      "text": "Keep position sizing disciplined and avoid overreaction to single headlines."
+      "type": "neutral",
+      "asset": "NVDA.US",
+      "text": "Conflicting signals in AI adoption and the 'one number' risk highlighted by analysts suggest the easy gains are over for this semiconductor titan. When paired with your massive Tesla stake, this position provides zero diversification and leaves you entirely exposed to the interest rate spikes triggered by the latest consumer price data."
     },
     {
-      "type": "warning",
-      "asset": "Gold USD",
-      "text": "Gold weight helps absorb macro and risk-off shocks."
+      "type": "neutral",
+      "asset": "SGOV.US",
+      "text": "The Red Wave 44% surge in T-bill holdings is the roadmap for survival in this environment; your current 0% weight is an oversight."
     }
   ],
   "advisor_briefing": {
-    "generated_at": "2026-03-01 11:55:11",
-    "source": "rule-based",
-    "headline": "Portfolio Pulse: Balanced but Event-Sensitive",
-    "macro_summary": "7-day NAV move is -0.18%. Current allocation is Cash 10.8%, Gold 28.5%, US Stocks 60.6%. Portfolio remains diversified, but near-term volatility can be elevated around headline-heavy sessions.",
-    "verdict": "Keep diversified core positions and adjust incrementally, not aggressively.",
+    "generated_at": "2024-05-21T09:15:00Z",
+    "source": "AdvisorAgent",
+    "headline": "CATASTROPHIC TECH CONCENTRATION FACES BUFFETT'S CASH WARNING",
+    "macro_summary": "Warren Buffett’s $187 billion retreat to cash is a sirens’ call that the growth-at-any-price era is ending. With inflation jolting Wall Street and indicators suggesting the Trump bull market is on its last leg, liquidity is the only asset that matters. You are holding a match in a room full of gasoline while the smartest money in the room has already found the exit.",
+    "verdict": "BEARISH",
     "suggestions": [
       {
-        "asset": "Cash USD",
-        "action": "Maintain reserve",
-        "rationale": "Use staged allocation to control timing risk and keep flexibility."
+        "asset": "TSLA.US",
+        "action": "SELL",
+        "rationale": "You are running a reckless gamble that ignores historical indicators showing the Trump bull market is exhausted. By maintaining nearly 80% weight in a single high-beta asset while Buffett moves to a $187 billion cash fortress, you are betting against the highest conviction signal in the market. The recent inflation shock will punish this valuation first; liquidate half of this position to secure what capital you have left before the liquidity drain accelerates."
       },
       {
-        "asset": "US Stocks",
-        "action": "Hold core exposure",
-        "rationale": "Keep position sizing disciplined and avoid overreaction to single headlines."
+        "asset": "NVDA.US",
+        "action": "SELL",
+        "rationale": "Conflicting signals in AI adoption and the 'one number' risk highlighted by analysts suggest the easy gains are over for this semiconductor titan. When paired with your massive Tesla stake, this position provides zero diversification and leaves you entirely exposed to the interest rate spikes triggered by the latest consumer price data."
       },
       {
-        "asset": "Gold USD",
-        "action": "Keep hedge",
-        "rationale": "Gold weight helps absorb macro and risk-off shocks."
+        "asset": "SGOV.US",
+        "action": "BUY",
+        "rationale": "The Red Wave 44% surge in T-bill holdings is the roadmap for survival in this environment; your current 0% weight is an oversight."
+      },
+      {
+        "asset": "GOLD.CN",
+        "action": "BUY",
+        "rationale": "Mining stocks have become the new market darlings due to geopolitical risk, making your 0% weight in this inflation hedge a defensive failure."
+      },
+      {
+        "asset": "QQQ.US",
+        "action": "HOLD",
+        "rationale": "The index pays nothing and offers no protection against the sector-wide valuation reset currently being signaled by macro data."
       }
     ],
     "risks": [
-      "Short-term market reactions to macro headlines can exceed fundamentals.",
-      "Single-name concentration risk can amplify drawdowns."
+      "Concentration Overload: A 79% weight in TSLA turns any individual company setback into a terminal portfolio event.",
+      "Inflation Persistence: The surprise jump in inflation will drive yields higher, which is poison for the high-multiple tech stocks that comprise 100% of your equity sleeve.",
+      "Smart Money Exodus: Buffett's $187B cash pile and the 44% surge in T-bill demand indicate a massive rotation out of the assets you are currently holding."
     ],
-    "news_context": [],
-    "disclaimer": "Informational only, not financial advice."
+    "news_context": [
+      {
+        "headline": "[NVDA] Warren Buffett Retires With a $187 Billion Warning to Investors. History Says the Stock Market Will Do This Next.",
+        "source": "Motley Fool",
+        "timestamp": "2026-03-01T08:32:00Z",
+        "relevance_score": 0.9274
+      },
+      {
+        "headline": "[NVDA] Is This 1 Number Nvidia's Biggest Risk?",
+        "source": "Motley Fool",
+        "timestamp": "2026-03-01T09:30:00Z",
+        "relevance_score": 0.9292
+      },
+      {
+        "headline": "[NVDA] Is the Trump Bull Market on Its Last Leg? 4 Historically Accurate Indicators Offer a Clear Answer.",
+        "source": "Motley Fool",
+        "timestamp": "2026-03-01T09:26:00Z",
+        "relevance_score": 0.929
+      }
+    ],
+    "global_context": [
+      {
+        "headline": "Mining stocks are the new market darlings, fueled by geopolitical risks and AI demand",
+        "source": "Yahoo Finance",
+        "timestamp": "2026-02-28T17:30:05Z",
+        "relevance_score": 0.6706
+      },
+      {
+        "headline": "Inflation Surprise Jolts Wall Street",
+        "source": "GuruFocus.com",
+        "timestamp": "2026-02-27T18:34:37Z",
+        "relevance_score": 0.5796
+      },
+      {
+        "headline": "Red Wave Investments Supercharges Treasury Bill Holdings by 44%",
+        "source": "Motley Fool",
+        "timestamp": "2026-02-27T21:52:33Z",
+        "relevance_score": 0.5855
+      }
+    ],
+    "disclaimer": "Investment involves significant risk of loss. This analysis represents the clinical professional opinion of James Chen, CIO, and does not constitute individual financial advice."
   },
+  "daily_news": [
+    {
+      "symbol": "MACRO",
+      "title": "Mining stocks are the new market darlings, fueled by geopolitical risks and AI demand",
+      "publisher": "Yahoo Finance",
+      "published_at": "2026-02-28T17:30:05Z",
+      "url": "https://finance.yahoo.com/news/mining-stocks-are-the-new-market-darlings-fueled-by-geopolitical-risks-and-ai-demand-173005780.html",
+      "summary": ""
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Buy 2 Vanguard Index Funds to Beat the S&P 500 in the Next 5 Years, According to Wall Street Analysts",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01T09:32:00Z",
+      "url": "https://finance.yahoo.com/news/buy-2-vanguard-index-funds-093200979.html",
+      "summary": ""
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Is the Trump Bull Market on Its Last Leg? 4 Historically Accurate Indicators Offer a Clear Answer.",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01T09:26:00Z",
+      "url": "https://finance.yahoo.com/news/trump-bull-market-last-leg-092600843.html",
+      "summary": ""
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Warren Buffett Retires With a $187 Billion Warning to Investors. History Says the Stock Market Will Do This Next.",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-01T08:32:00Z",
+      "url": "https://finance.yahoo.com/news/warren-buffett-retires-187-billion-083200119.html",
+      "summary": ""
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Red Wave Investments Supercharges Treasury Bill Holdings by 44%",
+      "publisher": "Motley Fool",
+      "published_at": "2026-02-27T21:52:33Z",
+      "url": "https://finance.yahoo.com/news/red-wave-investments-supercharges-treasury-215233634.html",
+      "summary": ""
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Inflation Surprise Jolts Wall Street",
+      "publisher": "GuruFocus.com",
+      "published_at": "2026-02-27T18:34:37Z",
+      "url": "https://finance.yahoo.com/news/inflation-surprise-jolts-wall-street-183437750.html",
+      "summary": ""
+    }
+  ],
   "performance": {
     "1d": "Live",
     "summary": "Broker Export Integration"

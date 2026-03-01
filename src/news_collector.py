@@ -150,10 +150,19 @@ def _extract_from_yf_item(item: Dict[str, Any]) -> Optional[Dict[str, str]]:
         or item.get("providerPublishTime")
         or item.get("published")
     )
+    
+    url = (
+        item.get("link") 
+        or (content.get("clickThroughUrl") or {}).get("url")
+        or (content.get("canonicalUrl") or {}).get("url")
+        or ""
+    )
+    
     return {
         "headline": headline,
         "source": source or "Yahoo Finance",
         "timestamp": _iso_utc(raw_ts),
+        "url": url,
     }
 
 
@@ -187,6 +196,7 @@ def _fetch_symbol_news(symbols: Iterable[str]) -> List[Dict[str, str]]:
                     "headline": parsed["headline"],
                     "source": parsed["source"],
                     "timestamp": parsed["timestamp"],
+                    "url": parsed.get("url", ""),
                 }
             )
 
@@ -221,6 +231,7 @@ def _fetch_global_news() -> List[Dict[str, str]]:
                     "headline": parsed["headline"],
                     "source": parsed["source"],
                     "timestamp": parsed["timestamp"],
+                    "url": parsed.get("url", ""),
                 }
             )
 
@@ -273,6 +284,7 @@ def _rank_and_cast(
             continue
         source = str(item.get("source", "Unknown")).strip() or "Unknown"
         timestamp = _iso_utc(item.get("timestamp"))
+        url = item.get("url", "")
         relevance = _score_news(
             symbol=symbol,
             headline=headline,
@@ -284,9 +296,11 @@ def _rank_and_cast(
         label = f"[{symbol}] " if include_symbol_prefix and symbol else ""
         scored.append(
             {
+                "symbol": symbol if not include_symbol_prefix else "",
                 "headline": f"{label}{headline}",
                 "source": source,
                 "timestamp": timestamp,
+                "url": url,
                 "relevance_score": relevance,
             }
         )

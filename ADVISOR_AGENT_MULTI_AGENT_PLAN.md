@@ -19,6 +19,61 @@ Design principle:
 
 ## 3. Runtime Architecture (Advisor Domain)
 
+```mermaid
+graph LR
+    subgraph 外部数据源
+        SourceExcel[(assets.xlsx 持仓表)]
+        SourceYF(yfinance 实时行情与新闻)
+        SourceLLM(智谱 GLM 大模型)
+    end
+
+    subgraph Nanobot_Runtime [Nanobot 智能体运行环境]
+        subgraph 核心控制层
+            ExtractData((extract_data.py<br/>总调度与估值计算))
+            WorkbookSync(workbook_sync.py<br/>同步账本)
+        end
+        
+        subgraph 多 Agent 团队
+            Orchestrator{run_advisor_pipeline.py<br/>编排官}
+            
+            subgraph Agent_1 [数据采集部]
+                NewsCollector(news_collector.py<br/>新闻爬虫与打分排序)
+            end
+            
+            subgraph Agent_2 [策略分析部]
+                BriefingAgent(briefing_agent.py<br/>提示词工程与模型交互)
+                Guardrail(advisor_contract.py<br/>数据合规稽查员)
+            end
+        end
+    end
+    
+    subgraph 用户展示层
+        DataJSON(data.json\n状态快照)
+        WebUI[Vite React Dashboard\n前端可视化大屏]
+    end
+
+    %% 数据流向
+    SourceExcel -.-> ExtractData
+    SourceYF -.行情.-> ExtractData
+    ExtractData <--> WorkbookSync
+    
+    ExtractData ==> Orchestrator
+    
+    Orchestrator --> NewsCollector
+    SourceYF -.新闻.-> NewsCollector
+    NewsCollector -- "1. 过滤排序后的\n 结构化新闻列表" --> Orchestrator
+    
+    Orchestrator -- "2. 新闻与持仓 Context" --> BriefingAgent
+    SourceLLM <--> BriefingAgent
+    BriefingAgent -- "3. 原始 JSON 生成物" --> Guardrail
+    Guardrail -- "4. 校验通过 / Fallback" --> BriefingAgent
+    BriefingAgent -- "5. 100% 安全的简报对象" --> Orchestrator
+    
+    Orchestrator ==> DataJSON
+    ExtractData ==> DataJSON
+    DataJSON ==> WebUI
+```
+
 ### 3.1 Agent Roles
 
 1. `NewsCollectorAgent`
