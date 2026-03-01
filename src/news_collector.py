@@ -3,8 +3,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional
 
-from advisor_contract import NewsItem
-
 try:
     import yfinance as yf
 except Exception:  # pragma: no cover
@@ -14,75 +12,6 @@ except Exception:  # pragma: no cover
 MAX_PORTFOLIO_ITEMS = 8
 MAX_GLOBAL_ITEMS = 6
 GLOBAL_MACRO_TICKERS = ("^GSPC", "SPY", "QQQ")
-
-FALLBACK_PORTFOLIO_NEWS: Dict[str, List[Dict[str, str]]] = {
-    "NVDA": [
-        {
-            "headline": "NVIDIA extends AI datacenter roadmap after strong enterprise demand",
-            "source": "MockWire",
-            "timestamp": "2026-02-28T13:20:00Z",
-        },
-        {
-            "headline": "Chip suppliers rally as NVIDIA ecosystem spending accelerates",
-            "source": "MockWire",
-            "timestamp": "2026-02-27T16:10:00Z",
-        },
-    ],
-    "TSLA": [
-        {
-            "headline": "Tesla updates vehicle software stack with new autonomy milestones",
-            "source": "MockWire",
-            "timestamp": "2026-02-28T11:45:00Z",
-        },
-        {
-            "headline": "Battery-cost trend supports margin outlook for EV leaders including Tesla",
-            "source": "MockWire",
-            "timestamp": "2026-02-27T08:35:00Z",
-        },
-    ],
-    "AAPL": [
-        {
-            "headline": "Apple services revenue momentum offsets slower hardware cycle concerns",
-            "source": "MockWire",
-            "timestamp": "2026-02-28T09:15:00Z",
-        },
-        {
-            "headline": "Analysts focus on Apple ecosystem retention and recurring subscription mix",
-            "source": "MockWire",
-            "timestamp": "2026-02-26T19:05:00Z",
-        },
-    ],
-    "GC=F": [
-        {
-            "headline": "Gold futures gain as real-rate expectations stabilize",
-            "source": "MockWire",
-            "timestamp": "2026-02-28T07:50:00Z",
-        },
-        {
-            "headline": "Commodity desks report renewed defensive allocation into gold",
-            "source": "MockWire",
-            "timestamp": "2026-02-26T14:30:00Z",
-        },
-    ],
-}
-
-FALLBACK_GLOBAL_NEWS: List[Dict[str, str]] = [
-    {
-        "headline": "US equities open mixed as investors digest latest inflation commentary",
-        "source": "MockMacro",
-        "timestamp": "2026-02-28T15:00:00Z",
-    },
-    {
-        "headline": "Treasury yields stabilize while risk sentiment rotates into large caps",
-        "source": "MockMacro",
-        "timestamp": "2026-02-28T12:30:00Z",
-    },
-    {
-        "headline": "Commodities remain supported on persistent geopolitical risk premium",
-        "source": "MockMacro",
-        "timestamp": "2026-02-27T21:10:00Z",
-    },
-]
 
 
 def _to_float(value: Any) -> float:
@@ -298,47 +227,6 @@ def _fetch_global_news() -> List[Dict[str, str]]:
     return collected
 
 
-def _fallback_portfolio_news(symbols: List[str]) -> List[Dict[str, str]]:
-    target_symbols = symbols or ["NVDA", "TSLA", "AAPL", "GC=F"]
-    fallback_items: List[Dict[str, str]] = []
-
-    for symbol in target_symbols:
-        symbol_items = FALLBACK_PORTFOLIO_NEWS.get(symbol)
-        if symbol_items:
-            for entry in symbol_items:
-                fallback_items.append(
-                    {
-                        "symbol": symbol,
-                        "headline": entry["headline"],
-                        "source": entry["source"],
-                        "timestamp": entry["timestamp"],
-                    }
-                )
-        else:
-            fallback_items.append(
-                {
-                    "symbol": symbol,
-                    "headline": f"{symbol} faces mixed short-term sentiment in thin news cycle",
-                    "source": "MockWire",
-                    "timestamp": "2026-02-26T08:00:00Z",
-                }
-            )
-
-    return fallback_items
-
-
-def _fallback_global_news() -> List[Dict[str, str]]:
-    return [
-        {
-            "symbol": "MACRO",
-            "headline": item["headline"],
-            "source": item["source"],
-            "timestamp": item["timestamp"],
-        }
-        for item in FALLBACK_GLOBAL_NEWS
-    ]
-
-
 def _score_news(
     *,
     symbol: str,
@@ -376,8 +264,8 @@ def _rank_and_cast(
     symbol_weights: Dict[str, float],
     max_items: int,
     include_symbol_prefix: bool,
-) -> List[NewsItem]:
-    scored: List[NewsItem] = []
+) -> List[Dict[str, Any]]:
+    scored: List[Dict[str, Any]] = []
     for item in items:
         symbol = str(item.get("symbol", "")).strip().upper()
         headline = str(item.get("headline", "")).strip()
@@ -395,18 +283,18 @@ def _rank_and_cast(
 
         label = f"[{symbol}] " if include_symbol_prefix and symbol else ""
         scored.append(
-            NewsItem(
-                headline=f"{label}{headline}",
-                source=source,
-                timestamp=timestamp,
-                relevance_score=relevance,
-            )
+            {
+                "headline": f"{label}{headline}",
+                "source": source,
+                "timestamp": timestamp,
+                "relevance_score": relevance,
+            }
         )
 
     scored.sort(
         key=lambda n: (
-            n.relevance_score if n.relevance_score is not None else -1.0,
-            _parse_news_timestamp(n.timestamp),
+            n.get("relevance_score") if n.get("relevance_score") is not None else -1.0,
+            _parse_news_timestamp(n.get("timestamp")),
         ),
         reverse=True,
     )
@@ -414,37 +302,46 @@ def _rank_and_cast(
 
 
 def get_portfolio_context(holdings: list) -> dict:
-    """Collect and rank portfolio/global news as NewsItem objects.
+    """Collect and rank portfolio/global news as NewsItem-shaped dict items.
 
     Returns:
-        {"news_context": List[NewsItem], "global_context": List[NewsItem]}
+        {"news_context": List[dict], "global_context": List[dict]}
     """
 
-    symbols = _extract_symbols(holdings)
-    symbol_weights = _symbol_weight_map(holdings, symbols)
+    try:
+        symbols = _extract_symbols(holdings)
+        symbol_weights = _symbol_weight_map(holdings, symbols)
 
-    portfolio_candidates = _fetch_symbol_news(symbols)
-    if not portfolio_candidates:
-        portfolio_candidates = _fallback_portfolio_news(symbols)
+        portfolio_candidates = _fetch_symbol_news(symbols)
+        global_candidates = _fetch_global_news()
 
-    global_candidates = _fetch_global_news()
-    if not global_candidates:
-        global_candidates = _fallback_global_news()
+        news_context = (
+            _rank_and_cast(
+                portfolio_candidates,
+                symbol_weights=symbol_weights,
+                max_items=MAX_PORTFOLIO_ITEMS,
+                include_symbol_prefix=True,
+            )
+            if portfolio_candidates
+            else []
+        )
+        global_context = (
+            _rank_and_cast(
+                global_candidates,
+                symbol_weights=symbol_weights,
+                max_items=MAX_GLOBAL_ITEMS,
+                include_symbol_prefix=False,
+            )
+            if global_candidates
+            else []
+        )
 
-    news_context = _rank_and_cast(
-        portfolio_candidates,
-        symbol_weights=symbol_weights,
-        max_items=MAX_PORTFOLIO_ITEMS,
-        include_symbol_prefix=True,
-    )
-    global_context = _rank_and_cast(
-        global_candidates,
-        symbol_weights=symbol_weights,
-        max_items=MAX_GLOBAL_ITEMS,
-        include_symbol_prefix=False,
-    )
-
-    return {
-        "news_context": news_context,
-        "global_context": global_context,
-    }
+        return {
+            "news_context": news_context,
+            "global_context": global_context,
+        }
+    except Exception:
+        return {
+            "news_context": [],
+            "global_context": [],
+        }
