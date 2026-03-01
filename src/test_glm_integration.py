@@ -37,7 +37,10 @@ class TestGLMIntegration(unittest.TestCase):
         assets = [{"label": "US Stocks", "value": "1000"}]
         holdings = [{"symbol": "NVDA.US", "name": "Nvidia", "qty": "1", "value": "100"}]
         perf_7d = 0.05
-        news_items = [{"symbol": "NVDA.US", "title": "Big News"}]
+        news_items = {
+            "portfolio": [{"symbol": "NVDA.US", "title": "Big News"}],
+            "global": [{"symbol": "MACRO", "title": "Macro event"}],
+        }
 
         # Call function
         result = generate_llm_briefing(assets, holdings, perf_7d, news_items)
