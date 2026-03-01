@@ -43,3 +43,6 @@ jobs:
 
       - name: Validate GLM integration contract
         run: python src/test_glm_integration.py
+
+      - name: Validate heartbeat probe
+        run: python script_real_stress_test.py

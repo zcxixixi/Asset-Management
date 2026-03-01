@@ -58,8 +58,7 @@ Latest robustness results are tracked in [TEST_LOG.md](/Users/kaijimima1234/Desk
 ## Automation (GitHub Actions)
 
 - `Auto Data Sync`: every 6 hours; regenerates `assets.xlsx + public/data.json + src/data.json`, commits to `main`.
-- `Auto Test`: runs Python + frontend validation on push/PR.
-- `Heartbeat 24/7 Stress Test`: periodic health probe.
+- `Auto Test`: runs frontend validation + Python schema/regression/LLM/heartbeat checks on push/PR.
 - `Deploy Pages`: builds and deploys `dist` to GitHub Pages.
 
 ## Optional Secrets
