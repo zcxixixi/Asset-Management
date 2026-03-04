@@ -33,10 +33,12 @@ jobs:
         run: pip install -r requirements.txt
       
       - name: Validate extracted JSON schema
-        run: python src/extract_data_test.py
+        run: python scripts/tests/extract_data_test.py
+        if: hashFiles('assets.xlsx') != ''
 
       - name: Validate Feb 24-27 autofill regression
-        run: python src/backfill_regression_test.py
+        run: python scripts/tests/backfill_regression_test.py
+        if: hashFiles('assets.xlsx') != ''
 
       - name: Validate safe-float robustness
-        run: python src/stability_test.py
+        run: python scripts/tests/stability_test.py

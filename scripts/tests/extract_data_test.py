@@ -9,10 +9,11 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 INPUT_PATH = REPO_ROOT / "assets.xlsx"
 PUBLIC_OUTPUT_PATH = REPO_ROOT / "public" / "data.json"
 BUNDLED_OUTPUT_PATH = REPO_ROOT / "src" / "data.json"
+SCRIPTS_EXTRACT_DATA = REPO_ROOT / "scripts" / "extract_data.py"
 
 
 def fail(message: str) -> None:
@@ -27,7 +28,7 @@ def assert_true(condition: bool, message: str) -> None:
 
 def run_extract_data() -> None:
     result = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "src" / "extract_data.py")],
+        [sys.executable, str(SCRIPTS_EXTRACT_DATA)],
         capture_output=True,
         text=True,
         cwd=str(REPO_ROOT),

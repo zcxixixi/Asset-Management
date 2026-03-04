@@ -102,6 +102,12 @@ def _create_backup(path: Path) -> Path:
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_path = backup_dir / f"{path.stem}_{stamp}{path.suffix}"
     shutil.copy2(path, backup_path)
+
+    # Prune old backups - keep only the 10 most recent
+    existing = sorted(backup_dir.glob(f"{path.stem}_*.xlsx"), key=lambda p: p.stat().st_mtime)
+    for old in existing[:-10]:
+        old.unlink(missing_ok=True)
+
     return backup_path
 
 

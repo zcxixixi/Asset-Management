@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, Sparkles, TrendingUp, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { bundledDashboardData, fetchLiveDashboardData } from './live_data';
 
-interface AdvisorBriefingProps {
+export interface AdvisorBriefingProps {
+  payload?: AdvisorPayload;
   onBack: () => void;
   isPrivacyMode: boolean;
 }
 
-interface Insight {
+export interface Insight {
   type: 'opportunity' | 'warning' | 'neutral';
   asset: string;
   text: string;
@@ -45,7 +46,7 @@ interface AdvisorBriefingData {
   disclaimer?: string;
 }
 
-interface AdvisorPayload {
+export interface AdvisorPayload {
   insights?: Insight[];
   assets?: DashboardAsset[];
   advisor_briefing?: AdvisorBriefingData;
@@ -91,11 +92,17 @@ const actionToInsightType = (action: string): Insight['type'] => {
   return 'neutral';
 };
 
-export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefingProps) {
-  const [typedData, setTypedData] = useState<AdvisorPayload>(bundledDashboardData as AdvisorPayload);
+export default function AdvisorBriefing({ payload: propPayload, onBack, isPrivacyMode }: AdvisorBriefingProps) {
+  const [typedData, setTypedData] = useState<AdvisorPayload>(propPayload ?? bundledDashboardData as AdvisorPayload);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    // Only fetch if no prop was provided
+    if (propPayload) {
+      setTypedData(propPayload);
+      return;
+    }
 
     let alive = true;
     fetchLiveDashboardData()
@@ -111,7 +118,7 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
     return () => {
       alive = false;
     };
-  }, []);
+  }, [propPayload]);
 
   const getImpactIcon = (type: Insight['type']) => {
     switch (type) {
@@ -223,11 +230,11 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
           </div>
 
           <div className="grid gap-4">
-            {insights.map((impact, idx) => {
+            {insights.map((impact) => {
               const holding = typedData.assets?.find((asset) => asset.label === impact.asset);
               return (
                 <div
-                  key={idx}
+                  key={`${impact.asset}-${impact.type}`}
                   className={`relative overflow-hidden group rounded-3xl p-6 md:p-8 transition-colors duration-300 ${getImpactColor(impact.type)}`}
                 >
                   <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
@@ -267,14 +274,14 @@ export default function AdvisorBriefing({ onBack, isPrivacyMode }: AdvisorBriefi
             </div>
 
             <div className="bg-white rounded-[2rem] p-6 md:p-8 border border-slate-200/60 shadow-sm space-y-5">
-              {(report.global_context || []).slice(0, 2).map((news, idx) => (
-                <a key={`global-${idx}`} href={news.url || '#'} target="_blank" rel="noreferrer" className="block group border-l-4 border-blue-500 pl-4 py-1 hover:bg-slate-50 transition-colors">
+              {(report.global_context || []).slice(0, 2).map((news) => (
+                <a key={`global-${news.url}`} href={news.url || '#'} target="_blank" rel="noreferrer" className="block group border-l-4 border-blue-500 pl-4 py-1 hover:bg-slate-50 transition-colors">
                   <p className="text-xs text-blue-600 font-bold tracking-widest uppercase mb-1">Macro Market Event</p>
                   <h4 className="text-slate-900 font-serif text-lg leading-snug group-hover:text-blue-600 transition-colors">{news.title}</h4>
                 </a>
               ))}
-              {(report.news_context || []).slice(0, 2).map((news, idx) => (
-                <a key={`portfolio-${idx}`} href={news.url || '#'} target="_blank" rel="noreferrer" className="block group border-l-4 border-emerald-500 pl-4 py-1 hover:bg-slate-50 transition-colors">
+              {(report.news_context || []).slice(0, 2).map((news) => (
+                <a key={`portfolio-${news.url}`} href={news.url || '#'} target="_blank" rel="noreferrer" className="block group border-l-4 border-emerald-500 pl-4 py-1 hover:bg-slate-50 transition-colors">
                   <p className="text-xs text-emerald-600 font-bold tracking-widest uppercase mb-1">Portfolio Specific: {news.symbol}</p>
                   <h4 className="text-slate-900 font-serif text-lg leading-snug group-hover:text-emerald-600 transition-colors">{news.title}</h4>
                 </a>

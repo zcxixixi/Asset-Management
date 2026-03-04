@@ -1,15 +1,10 @@
 import json
 import pandas as pd
+import sys
+import os
 
-def safe_float(v):
-    if pd.isna(v) or v is None: return 0.0
-    try:
-        if isinstance(v, str):
-            v = v.replace(',', '').replace('$', '').strip()
-            if not v: return 0.0
-            return float(v)
-        return float(v)
-    except: return 0.0
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils import safe_float
 
 def test_robustness():
     print("Testing 'Safe Float' logic with corrupt inputs...")
