@@ -138,7 +138,6 @@ export default function AssetDashboard({ rawData: propRawData, onOpenAdvisor, on
   useEffect(() => {
     // Only fetch if no prop was provided
     if (propRawData) {
-      setRawData(propRawData);
       return;
     }
     let alive = true;
