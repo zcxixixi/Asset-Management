@@ -111,6 +111,36 @@ async def send_broadcast(message: str):
         sys.exit(1)
 
 
+async def send_alert(error_message: str, failed_stage: str):
+    """Send an alert message when the pipeline fails."""
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+
+    if not bot_token or not chat_id:
+        print(f"Error: Cannot send alert - TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID required.")
+        return
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    message = (
+        f"🚨 <b>Pipeline Alert: {failed_stage}</b>\n\n"
+        f"⏰ <b>Time:</b> {timestamp}\n"
+        f"❌ <b>Error:</b> <code>{error_message}</code>\n\n"
+        f"⚠️ <i>Please check the logs and investigate immediately.</i>"
+    )
+
+    try:
+        bot = Bot(token=bot_token)
+        await bot.send_message(
+            chat_id=chat_id,
+            text=message,
+            parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True
+        )
+        print("Alert sent successfully!")
+    except Exception as e:
+        print(f"Failed to send alert: {e}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Nanobot Telegram Broadcaster")
     parser.add_argument(

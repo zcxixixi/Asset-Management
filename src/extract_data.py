@@ -615,12 +615,22 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
 
 if __name__ == "__main__":
     import argparse
+    import asyncio
     parser = argparse.ArgumentParser(description="Synchronize asset data.")
     parser.add_argument("--date", type=str, help="Mock date (YYYY-MM-DD)")
     args = parser.parse_args()
-    
+
     try:
         extract_data(mock_date_str=args.date)
     except Exception as exc:
-        print(f"Error orchestrating pipeline: {exc}", file=sys.stderr)
+        error_msg = f"{type(exc).__name__}: {exc}"
+        print(f"Error orchestrating pipeline: {error_msg}", file=sys.stderr)
+
+        # Send alert to Telegram
+        try:
+            from telegram_bot import send_alert
+            asyncio.run(send_alert(error_msg, "Data Extraction Pipeline"))
+        except Exception as alert_exc:
+            print(f"Failed to send alert: {alert_exc}", file=sys.stderr)
+
         sys.exit(1)
