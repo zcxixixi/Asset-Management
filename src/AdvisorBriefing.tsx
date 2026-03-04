@@ -100,7 +100,6 @@ export default function AdvisorBriefing({ payload: propPayload, onBack, isPrivac
 
     // Only fetch if no prop was provided
     if (propPayload) {
-      setTypedData(propPayload);
       return;
     }
 
