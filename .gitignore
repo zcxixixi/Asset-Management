@@ -31,3 +31,6 @@ backups/
 __pycache__/
 *.pyc
 .venv/
+venv_test/
+finish_script.sh
+test_python.sh

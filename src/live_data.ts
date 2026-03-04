@@ -5,8 +5,8 @@ export type LiveDashboardPayload = Record<string, unknown>;
 export const bundledDashboardData = bundledData as LiveDashboardPayload;
 
 export async function fetchLiveDashboardData(): Promise<LiveDashboardPayload> {
-  const liveUrl = `${import.meta.env.BASE_URL}data.json?v=${Date.now()}`;
-  const response = await fetch(liveUrl, { cache: 'no-store' });
+  const liveUrl = `${import.meta.env.BASE_URL}data.json`;
+  const response = await fetch(liveUrl, { cache: 'no-cache' });
   if (!response.ok) {
     throw new Error(`Failed to fetch live data: ${response.status}`);
   }

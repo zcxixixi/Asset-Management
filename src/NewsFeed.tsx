@@ -18,7 +18,9 @@ interface NewsFeedProps {
     isPrivacyMode: boolean;
 }
 
-const NewsFeed: React.FC<NewsFeedProps> = ({ newsItems, onBack }) => {
+const NewsFeed: React.FC<NewsFeedProps> = ({ newsItems, onBack, isPrivacyMode }) => {
+    const p = (val: string) => isPrivacyMode ? '••••••' : val;
+
     return (
         <div className="min-h-screen bg-[#F8F9FA] text-[#1D1D1F] p-4 sm:p-8 font-sans transition-colors duration-300">
             <div className="max-w-4xl mx-auto">
@@ -50,37 +52,37 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ newsItems, onBack }) => {
 
                 <div className="space-y-6">
                     {newsItems.length > 0 ? (
-                        newsItems.map((item, index) => (
+                        newsItems.map((item) => (
                             <motion.a
                                 href={item.url || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                key={index}
+                                key={item.url}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4, delay: index * 0.05 }}
+                                transition={{ duration: 0.4, delay: 0.05 }}
                                 className="block group"
                             >
                                 <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E5EA]">
                                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-3">
                                         <h2 className="text-xl sm:text-2xl font-serif font-medium text-[#1D1D1F] group-hover:text-[#0066CC] transition-colors leading-snug">
-                                            {item.title}
+                                            {p(item.title)}
                                         </h2>
                                         <ExternalLink size={18} className="text-[#86868B] group-hover:text-[#0066CC] opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 mt-1" />
                                     </div>
 
                                     <p className="text-[#515154] leading-relaxed mb-6 line-clamp-2 sm:line-clamp-3">
-                                        {item.summary || "No summary available for this headline."}
+                                        {p(item.summary || "No summary available for this headline.")}
                                     </p>
 
                                     <div className="flex items-center gap-4 text-xs font-medium text-[#86868B]">
                                         <span className="flex items-center gap-1.5 uppercase tracking-wider">
-                                            {item.publisher}
+                                            {p(item.publisher)}
                                         </span>
                                         <span className="w-1 h-1 rounded-full bg-[#D1D1D6]" />
                                         <span className="flex items-center gap-1.5">
                                             <Calendar size={12} />
-                                            {item.published_at.replace(' UTC', '')}
+                                            {p(item.published_at.replace(' UTC', ''))}
                                         </span>
                                     </div>
                                 </div>

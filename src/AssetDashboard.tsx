@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer, YAxis, XAxis } from 'recharts';
 import { Eye, EyeOff, Sparkles, ShieldCheck, LayoutDashboard, ListFilter, Activity, Fingerprint, Database, ChevronRight } from 'lucide-react';
 import { bundledDashboardData, fetchLiveDashboardData } from './live_data';
+import { type NewsItem } from './NewsFeed';
 
-type ActiveTab = 'overview' | 'holdings' | 'diagnostics';
-type TimeRange = '7d' | '30d' | 'all';
+export type ActiveTab = 'overview' | 'holdings' | 'diagnostics';
+export type TimeRange = '7d' | '30d' | 'all';
 
-interface AssetItem {
+export interface AssetItem {
   label: string;
   value: string | number;
 }
@@ -72,7 +73,7 @@ interface AdvisorBriefingData {
   suggestions?: AdvisorSuggestion[];
 }
 
-interface RawDashboardData {
+export interface RawDashboardData {
   total_balance?: string | number;
   performance?: { '1d'?: string | number };
   chart_data?: RawChartDataPoint[];
@@ -81,6 +82,7 @@ interface RawDashboardData {
   diagnostics?: Partial<DiagnosticsData>;
   summary?: RawSummary;
   daily_data?: { date?: string; total_usd?: number }[];
+  daily_news?: Array<Partial<NewsItem>>;
   last_updated?: string;
   advisor_briefing?: AdvisorBriefingData;
 }
@@ -121,18 +123,24 @@ function buildDashboardData(rawData: RawDashboardData): DashboardData {
 }
 
 interface AssetDashboardProps {
+  rawData?: RawDashboardData;
   onOpenAdvisor?: () => void;
   onOpenNews?: () => void;
   isPrivacyMode: boolean;
   setIsPrivacyMode: (val: boolean) => void;
 }
 
-export default function AssetDashboard({ onOpenAdvisor, onOpenNews, isPrivacyMode, setIsPrivacyMode }: AssetDashboardProps) {
+export default function AssetDashboard({ rawData: propRawData, onOpenAdvisor, onOpenNews, isPrivacyMode, setIsPrivacyMode }: AssetDashboardProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
-  const [rawData, setRawData] = useState<RawDashboardData>(bundledDashboardData as RawDashboardData);
+  const [rawData, setRawData] = useState<RawDashboardData>(propRawData ?? bundledDashboardData as RawDashboardData);
 
   useEffect(() => {
+    // Only fetch if no prop was provided
+    if (propRawData) {
+      setRawData(propRawData);
+      return;
+    }
     let alive = true;
     fetchLiveDashboardData()
       .then((payload) => {
@@ -147,7 +155,7 @@ export default function AssetDashboard({ onOpenAdvisor, onOpenNews, isPrivacyMod
     return () => {
       alive = false;
     };
-  }, []);
+  }, [propRawData]);
 
   const dashboardData = useMemo(() => buildDashboardData(rawData), [rawData]);
   const advisorBriefing = rawData.advisor_briefing;
@@ -294,8 +302,8 @@ export default function AssetDashboard({ onOpenAdvisor, onOpenNews, isPrivacyMod
                     </tr>
                   </thead>
                   <tbody>
-                    {dashboardData.holdings.map((h, idx) => (
-                      <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
+                    {dashboardData.holdings.map((h) => (
+                      <tr key={h.symbol} className="group hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-5 border-b border-slate-50">
                           <div className="text-sm font-bold text-slate-800">{h.symbol}</div>
                           <div className="text-[10px] text-slate-400 font-medium truncate max-w-[120px]">{h.name}</div>
@@ -332,8 +340,8 @@ export default function AssetDashboard({ onOpenAdvisor, onOpenNews, isPrivacyMod
                     <h3 className="text-xs font-bold uppercase tracking-widest">Pipeline Health</h3>
                   </div>
                   <div className="space-y-3">
-                    {dashboardData.diagnostics.steps.map((step, i) => (
-                      <div key={i} className="flex items-center space-x-3">
+                    {dashboardData.diagnostics.steps.map((step) => (
+                      <div key={step.name} className="flex items-center space-x-3">
                         <div className={`w-2 h-2 rounded-full ${step.status === 'Success' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-amber-500'}`} />
                         <span className="text-xs font-medium text-slate-500 truncate">{step.name}</span>
                         <div className="flex-grow border-t border-dotted border-slate-200" />
