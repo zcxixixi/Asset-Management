@@ -9,16 +9,70 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG="$DIR/backups/cron_$(date +%Y%m%d_%H%M).log"
 AUTO_PUBLISH="${AUTO_PUBLISH:-0}"
 SEND_TELEGRAM="${SEND_TELEGRAM:-1}"
+ALERT_ON_FAILURE="${ALERT_ON_FAILURE:-1}"
+ALERT_LOG_LINES="${ALERT_LOG_LINES:-30}"
 TARGET_BRANCH="${TARGET_BRANCH:-main}"
 REMOTE_NAME="${REMOTE_NAME:-origin}"
 VENV_PATH="${VENV_PATH:-/Users/kaijimima1234/Desktop/nanobot/venv/bin/activate}"
 COMMIT_PREFIX="${COMMIT_PREFIX:-chore(data): sync portfolio data}"
+PIPELINE_SCRIPT="${PIPELINE_SCRIPT:-scripts/extract_data.py}"
+TELEGRAM_SCRIPT="${TELEGRAM_SCRIPT:-scripts/telegram_bot.py}"
 DATA_FILES=("assets.xlsx" "src/data.json" "public/data.json")
 
 mkdir -p "$DIR/backups"
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG"
+}
+
+send_failure_alert() {
+  local exit_code="$1"
+  local line="$2"
+  local cmd="$3"
+
+  if [ "${ALERT_ON_FAILURE}" != "1" ]; then
+    return 0
+  fi
+
+  local token="${TELEGRAM_BOT_TOKEN:-}"
+  local chat_id="${TELEGRAM_CHAT_ID:-}"
+  if [ -z "$token" ] || [ -z "$chat_id" ]; then
+    log "WARN: skip failure alert (missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID)"
+    return 0
+  fi
+
+  local branch host
+  branch="$(git branch --show-current 2>/dev/null || echo unknown)"
+  host="$(hostname 2>/dev/null || echo unknown)"
+  local log_tail
+  log_tail="$(tail -n "${ALERT_LOG_LINES}" "$LOG" 2>/dev/null | sed 's/\r//g' | tail -c 1200)"
+
+  local message
+  message="Asset-Management pipeline FAILED
+time_of_day=${TIME_OF_DAY}
+host=${host}
+branch=${branch}
+exit_code=${exit_code}
+line=${line}
+command=${cmd}
+log_tail:
+${log_tail}"
+
+  curl -fsS -X POST "https://api.telegram.org/bot${token}/sendMessage" \
+    --data-urlencode "chat_id=${chat_id}" \
+    --data-urlencode "text=${message}" \
+    >/dev/null 2>&1 || log "WARN: failed to send Telegram failure alert"
+}
+
+on_error() {
+  local exit_code="${1:-1}"
+  local line="${2:-unknown}"
+  local cmd="${3:-unknown}"
+  trap - ERR
+  set +e
+  log "ERROR: command failed (exit=${exit_code} line=${line} cmd=${cmd})"
+  send_failure_alert "${exit_code}" "${line}" "${cmd}"
+  exit "${exit_code}"
 }
 
 has_non_data_changes() {
@@ -82,27 +136,31 @@ if [ -f "$DIR/.env" ]; then
   source "$DIR/.env"
   set +a
 else
-  echo "ERROR: .env file not found at $DIR/.env" >&2
-  exit 1
+  on_error 1 "$LINENO" ".env file not found at $DIR/.env"
 fi
 
+trap 'on_error $? $LINENO "$BASH_COMMAND"' ERR
+
 # Activate venv
-source "$VENV_PATH"
+if [ ! -f "$VENV_PATH" ]; then
+  on_error 1 "$LINENO" "venv activate script not found: $VENV_PATH"
+fi
+source "$VENV_PATH" || on_error $? "$LINENO" "failed to source venv: $VENV_PATH"
 
 cd "$DIR"
 
-log "Starting $TIME_OF_DAY briefing (AUTO_PUBLISH=$AUTO_PUBLISH, SEND_TELEGRAM=$SEND_TELEGRAM)"
+log "Starting $TIME_OF_DAY briefing (AUTO_PUBLISH=$AUTO_PUBLISH, SEND_TELEGRAM=$SEND_TELEGRAM, ALERT_ON_FAILURE=$ALERT_ON_FAILURE)"
 
 if [ "$AUTO_PUBLISH" = "1" ]; then
   prepare_publish_branch
 fi
 
 # Step 1: Pipeline
-python3 src/extract_data.py >> "$LOG" 2>&1
+python3 "$PIPELINE_SCRIPT" >> "$LOG" 2>&1
 
 # Step 2: Telegram
 if [ "$SEND_TELEGRAM" = "1" ]; then
-  python3 src/telegram_bot.py --time_of_day "$TIME_OF_DAY" >> "$LOG" 2>&1
+  python3 "$TELEGRAM_SCRIPT" --time_of_day "$TIME_OF_DAY" >> "$LOG" 2>&1
 else
   log "Skipping Telegram broadcast (SEND_TELEGRAM=0)"
 fi
