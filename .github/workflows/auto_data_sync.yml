@@ -38,7 +38,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Validate data.json schema
-        run: python src/extract_data_test.py
+        run: python scripts/tests/extract_data_test.py
 
       - name: Validate regression tests
-        run: python src/backfill_regression_test.py
+        run: python scripts/tests/backfill_regression_test.py
