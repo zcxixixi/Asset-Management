@@ -6,7 +6,7 @@
     },
     {
       "label": "Gold USD",
-      "value": "1,488.33"
+      "value": "1,485.31"
     },
     {
       "label": "US Stocks",
@@ -42,7 +42,7 @@
       "symbol": "GOLD.CN",
       "name": "博时黄金ETF联接C(估算USD)",
       "qty": "0.28775",
-      "value": "1,488.33"
+      "value": "1,485.31"
     }
   ],
   "chart_data": [
@@ -816,11 +816,11 @@
     },
     {
       "date": "2026-03-05",
-      "value": 1.2663
+      "value": 1.2656
     }
   ],
-  "total_balance": "5,270.61",
-  "last_updated": "2026-03-05 18:07:14",
+  "total_balance": "5,267.59",
+  "last_updated": "2026-03-05 18:14:37",
   "insights": [
     {
       "type": "neutral",
@@ -829,7 +829,7 @@
     }
   ],
   "advisor_briefing": {
-    "generated_at": "2026-03-05T10:07:22.729060+00:00",
+    "generated_at": "2026-03-05T10:14:45.574751+00:00",
     "source": "AdvisorAgent_Fallback",
     "headline": "Portfolio Sync Complete (Advisor Analysis Unavailable)",
     "macro_summary": "The automated advisory service is currently unavailable. Portfolio holdings have been synced successfully based on the latest market data.",
