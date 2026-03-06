@@ -6,11 +6,11 @@
     },
     {
       "label": "Gold USD",
-      "value": "1,485.42"
+      "value": "1,801.49"
     },
     {
       "label": "US Stocks",
-      "value": "3,210.55"
+      "value": "3,207.26"
     }
   ],
   "holdings": [
@@ -18,31 +18,31 @@
       "symbol": "NVDA.US",
       "name": "NVIDIA Corp.",
       "qty": "0.734",
-      "value": "134.35"
+      "value": "134.57"
     },
     {
       "symbol": "SGOV.US",
       "name": "iShares 0-3 Month Treasury Bond ETF",
       "qty": "15.1446",
-      "value": "1,520.52"
+      "value": "1,520.67"
     },
     {
       "symbol": "TSLA.US",
       "name": "Tesla, Inc.",
       "qty": "1.2254",
-      "value": "497.44"
+      "value": "496.96"
     },
     {
       "symbol": "QQQ.US",
       "name": "NASDAQ 100 ETF",
       "qty": "1.7327",
-      "value": "1,058.25"
+      "value": "1,055.06"
     },
     {
       "symbol": "GOLD.CN",
       "name": "博时黄金ETF联接C(估算USD)",
-      "qty": "0.28775",
-      "value": "1,485.42"
+      "qty": "0.351785122969631",
+      "value": "1,801.49"
     }
   ],
   "chart_data": [
@@ -817,10 +817,14 @@
     {
       "date": "2026-03-05",
       "value": 1.2656
+    },
+    {
+      "date": "2026-03-06",
+      "value": 1.3408
     }
   ],
-  "total_balance": "5,267.71",
-  "last_updated": "2026-03-05 18:15:15",
+  "total_balance": "5,580.48",
+  "last_updated": "2026-03-06 16:58:25",
   "insights": [
     {
       "type": "neutral",
@@ -829,7 +833,7 @@
     }
   ],
   "advisor_briefing": {
-    "generated_at": "2026-03-05T10:15:24.586165+00:00",
+    "generated_at": "2026-03-06T08:58:39.241739+00:00",
     "source": "AdvisorAgent_Fallback",
     "headline": "Portfolio Sync Complete (Advisor Analysis Unavailable)",
     "macro_summary": "The automated advisory service is currently unavailable. Portfolio holdings have been synced successfully based on the latest market data.",
@@ -845,50 +849,50 @@
   "daily_news": [
     {
       "symbol": "MACRO",
-      "title": "COWG Is Up While QQQ Slips. What the Free Cash Flow Screen Is Actually Doing",
-      "publisher": "24/7 Wall St.",
-      "published_at": "2026-03-04T22:51:46Z",
-      "url": "https://finance.yahoo.com/news/cowg-while-qqq-slips-free-225146967.html",
-      "summary": ""
-    },
-    {
-      "symbol": "MACRO",
-      "title": "Stock market today: Dow, S&P 500, Nasdaq futures fall after Wall Street's bounce back",
+      "title": "Stock market today: Dow, S&P 500, Nasdaq futures inch up with key jobs report set to cap volatile week",
       "publisher": "Yahoo Finance",
-      "published_at": "2026-03-04T23:55:17Z",
-      "url": "https://finance.yahoo.com/news/live/stock-market-today-dow-sp-500-nasdaq-futures-fall-after-wall-streets-bounce-back-235517929.html",
+      "published_at": "2026-03-05T23:52:47Z",
+      "url": "https://finance.yahoo.com/news/live/stock-market-today-dow-sp-500-nasdaq-futures-inch-up-with-key-jobs-report-set-to-cap-volatile-week-235247731.html",
       "summary": ""
     },
     {
       "symbol": "MACRO",
-      "title": "Turns Out, a Simple ETF That Bets on Farmers Is Beating The S&P 500 Right Now",
-      "publisher": "24/7 Wall St.",
-      "published_at": "2026-03-04T22:48:35Z",
-      "url": "https://finance.yahoo.com/news/turns-simple-etf-bets-farmers-224835177.html",
+      "title": "IMAX CEO: AI is for efficiency, not to transform film production",
+      "publisher": "Yahoo Finance",
+      "published_at": "2026-03-05T18:43:18Z",
+      "url": "https://finance.yahoo.com/news/imax-ceo-ai-is-for-efficiency-not-to-transform-film-production-184318597.html",
       "summary": ""
     },
     {
       "symbol": "MACRO",
-      "title": "Why Cybersecurity ETF CIBR Belongs in Every Retirement Portfolio Right Now",
-      "publisher": "24/7 Wall St.",
-      "published_at": "2026-03-04T22:23:01Z",
-      "url": "https://finance.yahoo.com/news/why-cybersecurity-etf-cibr-belongs-222301724.html",
+      "title": "Asia shares are mixed following Wall Street's losses, as oil edges lower",
+      "publisher": "Associated Press Finance",
+      "published_at": "2026-03-06T05:41:43Z",
+      "url": "https://finance.yahoo.com/news/asia-shares-mixed-following-wall-054143125.html",
       "summary": ""
     },
     {
       "symbol": "MACRO",
-      "title": "Moderna reaches vaccine settlement, GitLab's guidance disappoints",
+      "title": "Advisor Sells $4.8 Million in Value Stocks, Doubles Down on Tactical Timing Fund",
+      "publisher": "Motley Fool",
+      "published_at": "2026-03-06T00:35:00Z",
+      "url": "https://finance.yahoo.com/news/advisor-sells-4-8-million-003500462.html",
+      "summary": ""
+    },
+    {
+      "symbol": "MACRO",
+      "title": "The Nasdaq-100® (NDX®) Ecosystem: The Evolution to Power Investor Choice Worldwide",
+      "publisher": "etf.com",
+      "published_at": "2026-03-05T22:51:02Z",
+      "url": "https://finance.yahoo.com/news/nasdaq-100-ndx-ecosystem-evolution-225102485.html",
+      "summary": ""
+    },
+    {
+      "symbol": "MACRO",
+      "title": "Investors are 'staying in US market' despite oil surge above $80",
       "publisher": "Yahoo Finance Video",
-      "published_at": "2026-03-04T19:27:53Z",
-      "url": "https://finance.yahoo.com/video/moderna-reaches-vaccine-settlement-gitlabs-192753846.html",
-      "summary": ""
-    },
-    {
-      "symbol": "MACRO",
-      "title": "BCA Research upgrades Canada and Australia amid Hormuz closure",
-      "publisher": "Investing.com",
-      "published_at": "2026-03-04T18:24:09Z",
-      "url": "https://finance.yahoo.com/news/bca-research-upgrades-canada-australia-182409122.html",
+      "published_at": "2026-03-05T20:57:55Z",
+      "url": "https://finance.yahoo.com/video/investors-staying-us-market-despite-205755644.html",
       "summary": ""
     }
   ],
