@@ -41,9 +41,13 @@ TELEGRAM_BOT_TOKEN="your-token" TELEGRAM_CHAT_ID="your-id" \
 
 | What | Who | When |
 |------|-----|------|
-| Pipeline + Telegram | Nanobot Cron (`~/.nanobot/cron/jobs.json`) | Weekdays 8:30, 13:30, 20:00 HKT |
+| Pipeline + auto-publish + Telegram | Nanobot Cron (`~/.nanobot/cron/jobs.json` → `run_briefing.sh`) | Weekdays 8:30, 13:30, 20:00 HKT |
 | CI (lint + tests) | GitHub Actions `auto_test.yml` | Every push |
-| Deploy dashboard | GitHub Actions `deploy-pages.yml` | Push to main |
+| Deploy dashboard | GitHub Actions `deploy-pages.yml` | Triggered by pushes to `main` |
+
+`run_briefing.sh` is the single entrypoint for scheduled runs. It refreshes portfolio data, sends the Telegram briefing, and when `AUTO_PUBLISH=1` it commits only `assets.xlsx`, `src/data.json`, and `public/data.json` to `main`. That push triggers GitHub Pages deployment.
+
+The frontend polls `data.json` every 60 seconds while the page is visible. Open tabs automatically pick up new `last_updated` payloads after the published JSON changes on GitHub Pages.
 
 ## Dev Server
 

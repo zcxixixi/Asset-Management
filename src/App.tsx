@@ -1,34 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AssetDashboard, { type RawDashboardData } from './AssetDashboard';
 import AdvisorBriefing, { type AdvisorPayload } from './AdvisorBriefing';
 import NewsFeed, { type NewsItem } from './NewsFeed';
-import { bundledDashboardData, fetchLiveDashboardData } from './live_data';
+import { bundledDashboardData, useLiveDashboardData } from './live_data';
 
 export type ViewState = 'dashboard' | 'advisor' | 'news';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
-  const [dashboardPayload, setDashboardPayload] = useState<RawDashboardData>(bundledDashboardData as RawDashboardData);
+  const dashboardPayload = useLiveDashboardData(bundledDashboardData as RawDashboardData);
 
   // We hoist privacy mode here so it persists across views
   const [isPrivacyMode, setIsPrivacyMode] = useState<boolean>(false);
-
-  useEffect(() => {
-    let alive = true;
-    fetchLiveDashboardData()
-      .then((payload) => {
-        if (alive) {
-          setDashboardPayload(payload as RawDashboardData);
-        }
-      })
-      .catch(() => {
-        // Keep bundled fallback when live data is unavailable.
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   // Extract daily news from JSON payload
   const dailyNewsRaw = dashboardPayload.daily_news || [];

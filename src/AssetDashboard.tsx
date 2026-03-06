@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer, YAxis, XAxis } from 'recharts';
 import { Eye, EyeOff, Sparkles, ShieldCheck, LayoutDashboard, ListFilter, Activity, Fingerprint, Database, ChevronRight } from 'lucide-react';
-import { bundledDashboardData, fetchLiveDashboardData } from './live_data';
+import { bundledDashboardData, useLiveDashboardData } from './live_data';
 import { type NewsItem } from './NewsFeed';
 
 export type ActiveTab = 'overview' | 'holdings' | 'diagnostics';
@@ -133,28 +133,10 @@ interface AssetDashboardProps {
 export default function AssetDashboard({ rawData: propRawData, onOpenAdvisor, onOpenNews, isPrivacyMode, setIsPrivacyMode }: AssetDashboardProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
-  const [rawData, setRawData] = useState<RawDashboardData>(propRawData ?? bundledDashboardData as RawDashboardData);
-
-  useEffect(() => {
-    // Only fetch if no prop was provided
-    if (propRawData) {
-      return;
-    }
-    let alive = true;
-    fetchLiveDashboardData()
-      .then((payload) => {
-        if (alive) {
-          setRawData(payload as RawDashboardData);
-        }
-      })
-      .catch(() => {
-        // Keep bundled fallback when live data is unavailable.
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, [propRawData]);
+  const rawData = useLiveDashboardData(
+    (propRawData ?? bundledDashboardData) as RawDashboardData,
+    { enabled: !propRawData },
+  );
 
   const dashboardData = useMemo(() => buildDashboardData(rawData), [rawData]);
   const advisorBriefing = rawData.advisor_briefing;

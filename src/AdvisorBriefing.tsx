@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Sparkles, TrendingUp, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
-import { bundledDashboardData, fetchLiveDashboardData } from './live_data';
+import { bundledDashboardData, useLiveDashboardData } from './live_data';
 
 export interface AdvisorBriefingProps {
   payload?: AdvisorPayload;
@@ -93,31 +93,14 @@ const actionToInsightType = (action: string): Insight['type'] => {
 };
 
 export default function AdvisorBriefing({ payload: propPayload, onBack, isPrivacyMode }: AdvisorBriefingProps) {
-  const [typedData, setTypedData] = useState<AdvisorPayload>(propPayload ?? bundledDashboardData as AdvisorPayload);
+  const typedData = useLiveDashboardData(
+    (propPayload ?? bundledDashboardData) as AdvisorPayload,
+    { enabled: !propPayload },
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
-
-    // Only fetch if no prop was provided
-    if (propPayload) {
-      return;
-    }
-
-    let alive = true;
-    fetchLiveDashboardData()
-      .then((payload) => {
-        if (alive) {
-          setTypedData(payload as AdvisorPayload);
-        }
-      })
-      .catch(() => {
-        // Keep bundled fallback when live payload fetch fails.
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, [propPayload]);
+  }, []);
 
   const getImpactIcon = (type: Insight['type']) => {
     switch (type) {
