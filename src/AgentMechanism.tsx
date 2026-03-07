@@ -4,15 +4,20 @@ import {
   ArrowRight,
   BrainCircuit,
   ChevronLeft,
+  Cpu,
   Database,
   FileClock,
   FileSearch,
   FolderKanban,
   Layers3,
   MessagesSquare,
+  Radar,
   RefreshCw,
   ShieldCheck,
+  Sparkles,
+  Workflow,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface AgentMechanismProps {
   onBack: () => void;
@@ -23,111 +28,399 @@ interface FlowStage {
   title: string;
   body: string;
   accent: string;
-  icon: typeof MessagesSquare;
+  icon: LucideIcon;
+}
+
+interface GraphNode {
+  id: string;
+  title: string;
+  caption: string;
+  x: number;
+  y: number;
+  accent: string;
+  glow: string;
+  icon: LucideIcon;
+}
+
+interface GraphEdge {
+  from: [number, number];
+  to: [number, number];
+  color: string;
+  delay: number;
 }
 
 const flowStages: FlowStage[] = [
   {
     step: '01',
-    title: 'Short-term turns land in a session file',
+    title: 'User turn enters the session log',
     body:
-      'Each conversation is tracked as a channel-scoped session. Raw user, assistant, and tool messages are appended to JSONL so the latest turn history stays durable and replayable.',
-    accent: 'from-cyan-500 to-sky-500',
+      'Each incoming turn is appended to a channel-scoped JSONL session so the raw chronology of user, assistant, and tool events remains durable.',
+    accent: 'from-cyan-400 to-sky-500',
     icon: MessagesSquare,
   },
   {
     step: '02',
-    title: 'Prompt assembly pulls in the live working set',
+    title: 'Prompt builder assembles the working set',
     body:
-      'Nanobot builds the next prompt from bootstrap files, long-term memory, and the unconsolidated tail of session history. That tail is the active short-term context.',
+      'Nanobot combines bootstrap files, `MEMORY.md`, recent unconsolidated turns, runtime metadata, and the current message into the live prompt stack.',
     accent: 'from-blue-500 to-indigo-500',
     icon: Layers3,
   },
   {
     step: '03',
-    title: 'A consolidation threshold watches the backlog',
+    title: 'Agent reasons on the hot context',
     body:
-      'When unconsolidated history reaches the configured memory window, nanobot starts a background consolidation pass instead of shoving the full backlog into every prompt.',
+      'The model sees only the active working set, not the entire historical backlog. This keeps context tight enough to stay fast and legible.',
+    accent: 'from-indigo-500 to-violet-500',
+    icon: Cpu,
+  },
+  {
+    step: '04',
+    title: 'Memory window triggers consolidation',
+    body:
+      'When unconsolidated history reaches the configured threshold, nanobot starts a background consolidation pass instead of carrying the full tail forever.',
     accent: 'from-violet-500 to-fuchsia-500',
     icon: RefreshCw,
   },
   {
-    step: '04',
-    title: 'An LLM compresses old turns into durable memory',
+    step: '05',
+    title: 'Older turns become durable long-term memory',
     body:
-      'The consolidator summarizes older turns into a grep-friendly history entry and a rewritten long-term memory document. Newer turns stay hot; older turns get compacted.',
-    accent: 'from-amber-500 to-orange-500',
+      'The consolidator writes stable facts to `MEMORY.md` and a searchable timestamped summary to `HISTORY.md`, while the newest raw turns remain hot.',
+    accent: 'from-emerald-500 to-teal-500',
+    icon: Database,
+  },
+];
+
+const graphNodes: GraphNode[] = [
+  {
+    id: 'user',
+    title: 'User Message',
+    caption: 'live input',
+    x: 12,
+    y: 22,
+    accent: 'from-cyan-400 to-sky-500',
+    glow: 'rgba(34,211,238,0.34)',
+    icon: MessagesSquare,
+  },
+  {
+    id: 'session',
+    title: 'Session JSONL',
+    caption: 'raw short-term turns',
+    x: 31,
+    y: 22,
+    accent: 'from-sky-500 to-blue-500',
+    glow: 'rgba(59,130,246,0.30)',
+    icon: FolderKanban,
+  },
+  {
+    id: 'prompt',
+    title: 'Prompt Builder',
+    caption: 'assembles working context',
+    x: 50,
+    y: 22,
+    accent: 'from-blue-500 to-indigo-500',
+    glow: 'rgba(79,70,229,0.32)',
+    icon: Layers3,
+  },
+  {
+    id: 'model',
+    title: 'Agent / Model',
+    caption: 'reasons on hot context',
+    x: 74,
+    y: 22,
+    accent: 'from-indigo-500 to-violet-500',
+    glow: 'rgba(99,102,241,0.36)',
     icon: BrainCircuit,
   },
   {
-    step: '05',
-    title: 'Long-term memory stays local and explicit',
-    body:
-      'Important stable facts go into MEMORY.md and are loaded on future prompts. HISTORY.md stays on disk for search and audit, but it is not injected wholesale into the model context.',
+    id: 'window',
+    title: 'Memory Window',
+    caption: '100-turn trigger',
+    x: 50,
+    y: 48,
+    accent: 'from-fuchsia-500 to-purple-500',
+    glow: 'rgba(217,70,239,0.30)',
+    icon: Radar,
+  },
+  {
+    id: 'memory',
+    title: 'MEMORY.md',
+    caption: 'loaded on next prompt',
+    x: 30,
+    y: 74,
     accent: 'from-emerald-500 to-teal-500',
-    icon: Database,
+    glow: 'rgba(16,185,129,0.32)',
+    icon: FileClock,
+  },
+  {
+    id: 'history',
+    title: 'HISTORY.md',
+    caption: 'searchable summaries only',
+    x: 69,
+    y: 74,
+    accent: 'from-amber-500 to-orange-500',
+    glow: 'rgba(249,115,22,0.28)',
+    icon: FileSearch,
+  },
+];
+
+const graphEdges: GraphEdge[] = [
+  { from: [17, 22], to: [26, 22], color: '#38bdf8', delay: 0 },
+  { from: [36, 22], to: [45, 22], color: '#60a5fa', delay: 0.25 },
+  { from: [56, 22], to: [68, 22], color: '#818cf8', delay: 0.5 },
+  { from: [72, 29], to: [54, 45], color: '#a78bfa', delay: 0.9 },
+  { from: [46, 29], to: [48, 44], color: '#c084fc', delay: 1.15 },
+  { from: [44, 52], to: [34, 68], color: '#34d399', delay: 1.5 },
+  { from: [56, 52], to: [64, 68], color: '#f59e0b', delay: 1.8 },
+  { from: [34, 70], to: [44, 30], color: '#2dd4bf', delay: 2.15 },
+];
+
+const implementationFacts = [
+  {
+    title: 'Short-term live window',
+    value: '100',
+    note: 'Configured as `memory_window` in the default agent settings.',
+  },
+  {
+    title: 'Raw turns kept hot',
+    value: '~50',
+    note: 'After consolidation, the newest half of the window stays as raw working memory.',
+  },
+  {
+    title: 'Provider-side storage',
+    value: 'off',
+    note: 'Responses-style providers send requests with `store: false`.',
+  },
+  {
+    title: 'Recall mechanism',
+    value: 'files',
+    note: 'This path uses local files plus grep, not vector embeddings.',
   },
 ];
 
 const distinctions = [
   {
     label: 'Short-term memory',
-    title: 'Session tail in `sessions/*.jsonl`',
+    title: 'recent unconsolidated turns',
     body:
-      'This is the model’s working memory. It contains the latest unconsolidated user, assistant, and tool messages, aligned to recent turns.',
-    chips: ['default window: 100', 'raw turns', 'loaded into prompt'],
-    tone: 'border-cyan-200 bg-cyan-50/80',
+      'This is the active working memory. It is recent, raw, and directly injected into the next model call as session history.',
+    chips: ['`sessions/*.jsonl`', 'raw chronology', 'prompt-visible'],
+    tone: 'border-cyan-200 bg-cyan-50/85',
   },
   {
     label: 'Long-term memory',
-    title: '`memory/MEMORY.md` plus `memory/HISTORY.md`',
+    title: 'facts and summaries on disk',
     body:
-      'This is the durable memory layer. `MEMORY.md` holds stable facts and preferences; `HISTORY.md` stores timestamped summaries for manual or grep-based recall.',
-    chips: ['local files', 'summarized facts', 'history not auto-loaded'],
-    tone: 'border-emerald-200 bg-emerald-50/80',
-  },
-];
-
-const implementationFacts = [
-  {
-    title: 'Trigger threshold',
-    value: '100 messages',
-    note: 'Configured as `memory_window` in agent defaults.',
-  },
-  {
-    title: 'Hot context after consolidation',
-    value: 'Newest ~50 kept raw',
-    note: 'The consolidator keeps roughly half the window as live short-term history.',
-  },
-  {
-    title: 'Provider-side retention',
-    value: 'Disabled',
-    note: 'Responses-style providers send requests with `store: false`.',
-  },
-  {
-    title: 'Recall mode',
-    value: 'File + grep',
-    note: 'No vector DB or embedding retrieval is wired into this memory path.',
+      'This is the durable layer. `MEMORY.md` carries stable facts forward, while `HISTORY.md` keeps timestamped summaries for search and audit.',
+    chips: ['`MEMORY.md`', '`HISTORY.md`', 'compact + durable'],
+    tone: 'border-emerald-200 bg-emerald-50/85',
   },
 ];
 
 const filePanels = [
   {
     title: 'sessions/<chat>.jsonl',
-    text: 'Append-only conversation log. This is where the raw turns live before and after consolidation.',
+    text: 'Append-only turn log for each conversation. This is where short-term chronology lives before and after consolidation.',
     icon: FolderKanban,
   },
   {
     title: 'memory/MEMORY.md',
-    text: 'Curated long-term memory. It gets injected into the system prompt on future requests.',
+    text: 'Stable facts that get injected into later prompts. This is the long-term file the agent actually re-reads every turn.',
     icon: FileClock,
   },
   {
     title: 'memory/HISTORY.md',
-    text: 'Timestamped summaries of older exchanges. Stored for search and audit rather than automatic prompt loading.',
+    text: 'Timestamped summaries of older exchanges. Persisted for grep-based recall, not dumped wholesale into prompt context.',
     icon: FileSearch,
   },
 ];
+
+function ArchitectureGraph() {
+  return (
+    <section className="space-y-6">
+      <div className="flex items-end justify-between gap-4">
+        <div className="space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Structural graph</p>
+          <h2
+            className="text-3xl font-semibold tracking-[-0.05em] text-slate-950 md:text-4xl"
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
+            Watch the memory mechanism as a system
+          </h2>
+        </div>
+        <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white/85 px-4 py-2 text-xs text-slate-500 md:inline-flex">
+          hot context
+          <ArrowRight size={14} />
+          consolidation
+          <ArrowRight size={14} />
+          durable files
+        </div>
+      </div>
+
+      <div className="relative overflow-hidden rounded-[2.25rem] border border-slate-200 bg-slate-950 p-5 text-white shadow-[0_30px_100px_rgba(15,23,42,0.18)] md:p-7">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.20),transparent_28%),radial-gradient(circle_at_top_right,rgba(129,140,248,0.22),transparent_30%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.18),transparent_35%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:4.75rem_4.75rem] opacity-60" />
+
+        <div className="relative z-10 mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.28em] text-cyan-200/70">nanobot memory topology</p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em]" style={{ fontFamily: 'var(--font-display)' }}>
+              Short-term stays hot. Long-term stays inspectable.
+            </h3>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-xs text-white/65">
+            <Sparkles size={14} className="text-cyan-300" />
+            animated data flow
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:hidden">
+          {graphNodes.map((node, index) => {
+            const Icon = node.icon;
+
+            return (
+              <motion.div
+                key={node.id}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ delay: index * 0.05 }}
+                className="rounded-[1.5rem] border border-white/10 bg-white/7 p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`rounded-2xl bg-gradient-to-br ${node.accent} p-3 text-white`}>
+                    <Icon size={18} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold tracking-[-0.03em] text-white">{node.title}</h4>
+                    <p className="text-xs uppercase tracking-[0.18em] text-white/45">{node.caption}</p>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        <div className="relative hidden h-[42rem] md:block">
+          <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
+            <defs>
+              <filter id="softGlow">
+                <feGaussianBlur stdDeviation="0.8" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            {graphEdges.map((edge) => (
+              <g key={`${edge.from.join('-')}-${edge.to.join('-')}`}>
+                <line
+                  x1={edge.from[0]}
+                  y1={edge.from[1]}
+                  x2={edge.to[0]}
+                  y2={edge.to[1]}
+                  stroke={edge.color}
+                  strokeOpacity="0.32"
+                  strokeWidth="0.35"
+                  strokeDasharray="0.75 1.15"
+                />
+                <motion.circle
+                  r="0.72"
+                  fill={edge.color}
+                  filter="url(#softGlow)"
+                  animate={{
+                    cx: [edge.from[0], edge.to[0]],
+                    cy: [edge.from[1], edge.to[1]],
+                    opacity: [0, 1, 1, 0],
+                    scale: [0.6, 1, 1, 0.6],
+                  }}
+                  transition={{
+                    duration: 3.4,
+                    repeat: Infinity,
+                    repeatDelay: 0.35,
+                    ease: 'linear',
+                    delay: edge.delay,
+                  }}
+                />
+                <motion.circle
+                  r="0.44"
+                  fill="white"
+                  animate={{
+                    cx: [edge.from[0], edge.to[0]],
+                    cy: [edge.from[1], edge.to[1]],
+                    opacity: [0, 0.75, 0.75, 0],
+                  }}
+                  transition={{
+                    duration: 3.4,
+                    repeat: Infinity,
+                    repeatDelay: 0.35,
+                    ease: 'linear',
+                    delay: edge.delay + 0.22,
+                  }}
+                />
+              </g>
+            ))}
+          </svg>
+
+          {graphNodes.map((node, index) => {
+            const Icon = node.icon;
+
+            return (
+              <motion.div
+                key={node.id}
+                initial={{ opacity: 0, scale: 0.92, y: 18 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ type: 'spring', stiffness: 130, damping: 18, delay: index * 0.05 }}
+                className="absolute w-[13.5rem] -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${node.x}%`, top: `${node.y}%` }}
+              >
+                <motion.div
+                  animate={{
+                    boxShadow: [
+                      `0 0 0 0 ${node.glow}`,
+                      `0 0 0 14px rgba(255,255,255,0)`,
+                      `0 0 0 0 rgba(255,255,255,0)`,
+                    ],
+                  }}
+                  transition={{
+                    duration: 3.2,
+                    repeat: Infinity,
+                    delay: index * 0.28,
+                    ease: 'easeOut',
+                  }}
+                  className="rounded-[1.6rem] border border-white/10 bg-slate-900/88 p-4 backdrop-blur"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`rounded-2xl bg-gradient-to-br ${node.accent} p-3 text-white shadow-lg`}>
+                      <Icon size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-base font-semibold tracking-[-0.03em] text-white">{node.title}</h4>
+                      <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-white/45">{node.caption}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            );
+          })}
+
+          <div className="absolute left-[7%] top-[5%] rounded-full border border-cyan-300/18 bg-cyan-300/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-100/75">
+            request path
+          </div>
+          <div className="absolute left-[37%] top-[57%] rounded-full border border-fuchsia-300/18 bg-fuchsia-300/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-fuchsia-100/75">
+            background consolidation
+          </div>
+          <div className="absolute left-[60%] top-[81%] rounded-full border border-amber-300/18 bg-amber-300/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-50/75">
+            grep/manual recall only
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function AgentMechanism({ onBack }: AgentMechanismProps) {
   useEffect(() => {
@@ -136,12 +429,16 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
 
   return (
     <div className="min-h-screen overflow-hidden bg-[var(--paper)] text-slate-950">
-      <div className="pointer-events-none fixed inset-0 opacity-90">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_30%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_25%),linear-gradient(180deg,rgba(255,255,255,0.84),rgba(242,246,252,0.98))]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.06)_1px,transparent_1px)] bg-[size:5.25rem_5.25rem] [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9),rgba(0,0,0,0.25))]" />
+      <div className="pointer-events-none fixed inset-0 opacity-95">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_30%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_28%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.10),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.9),rgba(241,246,252,1))]" />
+        <motion.div
+          animate={{ opacity: [0.3, 0.45, 0.3] }}
+          transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.06)_1px,transparent_1px)] bg-[size:5.25rem_5.25rem] [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9),rgba(0,0,0,0.12))]"
+        />
       </div>
 
-      <nav className="sticky top-0 z-50 border-b border-white/60 bg-white/70 backdrop-blur-2xl">
+      <nav className="sticky top-0 z-50 border-b border-white/60 bg-white/72 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 md:px-8">
           <button
             onClick={onBack}
@@ -151,7 +448,7 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
             Dashboard Demo
           </button>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/82 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_6px_rgba(74,222,128,0.12)]" />
             Nanobot Agent Memory
           </div>
@@ -159,152 +456,213 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
       </nav>
 
       <main className="relative z-10 mx-auto flex max-w-6xl flex-col gap-16 px-5 py-10 md:px-8 md:py-14">
-        <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+        <section className="grid gap-8 lg:grid-cols-[1.03fr_0.97fr] lg:items-stretch">
           <div className="space-y-6">
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] text-slate-500 shadow-sm"
+              className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white/85 px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] text-slate-500 shadow-sm"
             >
               <ShieldCheck size={14} className="text-cyan-600" />
-              File-based memory, not a black box
+              vivid systems view
             </motion.div>
 
             <motion.h1
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-              className="max-w-4xl text-5xl font-semibold leading-[0.95] tracking-[-0.06em] text-slate-950 md:text-7xl"
+              transition={{ delay: 0.04 }}
+              className="max-w-4xl text-5xl font-semibold leading-[0.93] tracking-[-0.065em] text-slate-950 md:text-7xl"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              How nanobot remembers a conversation after the prompt is gone.
+              Learn nanobot memory by watching the data move.
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="max-w-2xl text-base leading-8 text-slate-600 md:text-lg"
             >
-              Nanobot currently uses a two-layer memory mechanism: raw recent turns for short-term reasoning, then
-              local file consolidation for durable context. Older turns are compressed, stable facts are retained, and
-              provider-side storage is explicitly turned off.
+              This view turns the memory mechanism into a structural graph: you can see raw turns enter short-term
+              session history, prompt assembly happen on the live stack, and consolidation push old context into local
+              long-term memory files.
             </motion.p>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {implementationFacts.slice(0, 2).map((fact, index) => (
+                <motion.article
+                  key={fact.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.14 + index * 0.05 }}
+                  className="rounded-[1.7rem] border border-slate-200 bg-white/82 p-5 shadow-[0_14px_36px_rgba(15,23,42,0.06)]"
+                >
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{fact.title}</p>
+                  <h2 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-slate-950">{fact.value}</h2>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{fact.note}</p>
+                </motion.article>
+              ))}
+            </div>
           </div>
 
           <motion.div
-            initial={{ opacity: 0, x: 24 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.15 }}
-            className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 p-6 text-white shadow-[0_30px_80px_rgba(15,23,42,0.18)]"
+            transition={{ delay: 0.18 }}
+            className="relative overflow-hidden rounded-[2.2rem] border border-slate-200 bg-slate-950 p-6 text-white shadow-[0_34px_100px_rgba(15,23,42,0.18)]"
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.32),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(52,211,153,0.22),transparent_32%)]" />
-            <div className="relative space-y-6">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.28),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.18),transparent_38%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:4.5rem_4.5rem] opacity-55" />
+
+            <div className="relative z-10 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-cyan-200/80">Live Prompt Stack</p>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-cyan-200/78">Live stack</p>
                   <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]" style={{ fontFamily: 'var(--font-display)' }}>
-                    Active context on each turn
+                    What the model actually sees
                   </h2>
                 </div>
-                <BrainCircuit className="text-cyan-300" size={28} />
+                <Workflow className="text-cyan-300" size={28} />
               </div>
 
               <div className="space-y-3">
-                {['Bootstrap files', 'MEMORY.md', 'Latest unconsolidated session turns', 'Runtime metadata', 'Current user message'].map((item, index) => (
-                  <div
+                {[
+                  'bootstrap files and identity',
+                  'MEMORY.md long-term facts',
+                  'recent unconsolidated session turns',
+                  'runtime metadata block',
+                  'current user message',
+                ].map((item, index) => (
+                  <motion.div
                     key={item}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/6 px-4 py-3"
+                    initial={{ opacity: 0, x: -14 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + index * 0.06 }}
+                    className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/7 px-4 py-3"
                   >
-                    <span className="text-sm text-white/80">{item}</span>
-                    <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold tracking-[0.22em] text-white/60">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                  </div>
+                    <motion.div
+                      animate={{ x: ['-110%', '120%'] }}
+                      transition={{ duration: 3.8, repeat: Infinity, repeatDelay: 1.2, ease: 'easeInOut', delay: index * 0.28 }}
+                      className="absolute inset-y-0 w-20 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.16),transparent)]"
+                    />
+                    <div className="relative flex items-center justify-between">
+                      <span className="text-sm text-white/82">{item}</span>
+                      <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold tracking-[0.22em] text-white/55">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
 
-              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-sm leading-6 text-cyan-50">
-                Result: recent reasoning stays fast, while older context gets compressed into durable memory files.
+              <div className="grid gap-3 sm:grid-cols-2">
+                {implementationFacts.slice(2).map((fact) => (
+                  <div key={fact.title} className="rounded-2xl border border-white/10 bg-white/6 p-4">
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-white/45">{fact.title}</p>
+                    <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">{fact.value}</h3>
+                    <p className="mt-2 text-sm leading-6 text-white/68">{fact.note}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {implementationFacts.map((fact, index) => (
-            <motion.article
-              key={fact.title}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + index * 0.05 }}
-              className="rounded-[1.75rem] border border-slate-200 bg-white/80 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur"
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{fact.title}</p>
-              <h3 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-slate-950">{fact.value}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-600">{fact.note}</p>
-            </motion.article>
-          ))}
-        </section>
+        <ArchitectureGraph />
 
         <section className="space-y-8">
           <div className="flex items-end justify-between gap-4">
             <div className="space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Agent memory flow</p>
-              <h2 className="text-3xl font-semibold tracking-[-0.05em] text-slate-950 md:text-4xl" style={{ fontFamily: 'var(--font-display)' }}>
-                From raw turns to durable recall
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Motion narrative</p>
+              <h2
+                className="text-3xl font-semibold tracking-[-0.05em] text-slate-950 md:text-4xl"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                A single conversation turn moving through the agent
               </h2>
             </div>
-            <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs text-slate-500 md:inline-flex">
-              recent turns stay hot
+            <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white/85 px-4 py-2 text-xs text-slate-500 md:inline-flex">
+              one turn
               <ArrowRight size={14} />
-              older turns get compressed
+              active context
+              <ArrowRight size={14} />
+              durable memory
             </div>
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-5">
-            {flowStages.map((stage, index) => {
-              const Icon = stage.icon;
+          <div className="relative">
+            <div className="absolute left-5 top-0 hidden h-full w-px bg-gradient-to-b from-cyan-300 via-indigo-300 to-emerald-300 md:block" />
+            <div className="space-y-5">
+              {flowStages.map((stage, index) => {
+                const Icon = stage.icon;
 
-              return (
-                <motion.article
-                  key={stage.step}
-                  initial={{ opacity: 0, y: 22 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.18 + index * 0.06 }}
-                  className="relative overflow-hidden rounded-[1.9rem] border border-slate-200 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)]"
-                >
-                  <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${stage.accent}`} />
-                  <div className="mb-8 flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{stage.step}</p>
-                      <h3 className="mt-3 text-xl font-semibold leading-tight tracking-[-0.04em] text-slate-950">
-                        {stage.title}
-                      </h3>
+                return (
+                  <motion.article
+                    key={stage.step}
+                    initial={{ opacity: 0, y: 22 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.28 }}
+                    transition={{ duration: 0.55, delay: index * 0.05 }}
+                    className="relative rounded-[2rem] border border-slate-200 bg-white/84 p-6 shadow-[0_16px_44px_rgba(15,23,42,0.07)] md:ml-12"
+                  >
+                    <motion.div
+                      animate={{ scale: [1, 1.18, 1], opacity: [0.8, 1, 0.8] }}
+                      transition={{ duration: 2.8, repeat: Infinity, delay: index * 0.24 }}
+                      className="absolute left-[-2.95rem] top-8 hidden h-5 w-5 rounded-full border border-white bg-slate-950 shadow-[0_0_0_8px_rgba(255,255,255,0.9)] md:block"
+                    />
+                    <div className={`absolute inset-x-0 top-0 h-1.5 rounded-t-[2rem] bg-gradient-to-r ${stage.accent}`} />
+                    <div className="grid gap-6 md:grid-cols-[auto_1fr] md:items-start">
+                      <div className="flex items-center gap-4 md:block">
+                        <div className={`inline-flex rounded-[1.5rem] bg-gradient-to-br ${stage.accent} p-4 text-white shadow-lg`}>
+                          <Icon size={20} />
+                        </div>
+                        <div className="md:mt-4">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{stage.step}</p>
+                          <p className="mt-1 text-sm font-medium text-slate-500">animated phase</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <h3 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">{stage.title}</h3>
+                        <p className="max-w-3xl text-sm leading-7 text-slate-600 md:text-[15px]">{stage.body}</p>
+                        <div className="relative mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
+                          <motion.div
+                            animate={{ x: ['-12%', '104%'] }}
+                            transition={{ duration: 2.9, repeat: Infinity, ease: 'easeInOut', delay: index * 0.24 }}
+                            className={`absolute inset-y-0 w-28 rounded-full bg-gradient-to-r ${stage.accent}`}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className={`rounded-2xl bg-gradient-to-br ${stage.accent} p-3 text-white shadow-lg`}>
-                      <Icon size={18} />
-                    </div>
-                  </div>
-                  <p className="text-sm leading-7 text-slate-600">{stage.body}</p>
-                </motion.article>
-              );
-            })}
+                  </motion.article>
+                );
+              })}
+            </div>
           </div>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-5 rounded-[2rem] border border-slate-200 bg-white/80 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.07)]">
+          <div className="space-y-5 rounded-[2rem] border border-slate-200 bg-white/84 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.07)]">
             <div className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Memory split</p>
-              <h2 className="text-3xl font-semibold tracking-[-0.05em] text-slate-950" style={{ fontFamily: 'var(--font-display)' }}>
+              <h2
+                className="text-3xl font-semibold tracking-[-0.05em] text-slate-950"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
                 Short-term and long-term do different jobs
               </h2>
             </div>
 
             <div className="grid gap-4">
-              {distinctions.map((item) => (
-                <article key={item.label} className={`rounded-[1.6rem] border p-5 ${item.tone}`}>
+              {distinctions.map((item, index) => (
+                <motion.article
+                  key={item.label}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.25 }}
+                  transition={{ delay: index * 0.06 }}
+                  className={`rounded-[1.6rem] border p-5 ${item.tone}`}
+                >
                   <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-500">{item.label}</p>
                   <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-950">{item.title}</h3>
                   <p className="mt-3 text-sm leading-7 text-slate-600">{item.body}</p>
@@ -312,13 +670,13 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
                     {item.chips.map((chip) => (
                       <span
                         key={chip}
-                        className="rounded-full border border-slate-300/70 bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                        className="rounded-full border border-slate-300/70 bg-white/72 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500"
                       >
                         {chip}
                       </span>
                     ))}
                   </div>
-                </article>
+                </motion.article>
               ))}
             </div>
           </div>
@@ -332,7 +690,7 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
             </div>
 
             <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-5">
-              <p className="text-sm leading-7 text-white/78">
+              <p className="text-sm leading-7 text-white/80">
                 The current nanobot memory path is explicit and inspectable. It does not use embeddings, a vector
                 database, or automatic semantic retrieval for this mechanism. Durable recall is handled through local
                 files plus grep-friendly summaries.
@@ -342,17 +700,29 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
             <div className="rounded-[1.6rem] border border-emerald-400/20 bg-emerald-400/10 p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-200">Privacy stance</p>
               <p className="mt-3 text-sm leading-7 text-emerald-50/90">
-                Responses-style provider calls are made with storage disabled, so long-term memory remains a local
-                workspace concern instead of an opaque provider-side feature.
+                Provider requests are configured with storage disabled, so long-term memory stays a local workspace
+                concern rather than an opaque provider-side feature.
               </p>
             </div>
 
             <div className="space-y-3">
-              {['Provider request uses `store: false`', '`MEMORY.md` is loaded into prompts', '`HISTORY.md` is persisted for grep search', 'Session JSONL keeps raw turn chronology'].map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/4 px-4 py-3 text-sm text-white/80">
+              {[
+                'provider requests use `store: false`',
+                '`MEMORY.md` is injected into future prompts',
+                '`HISTORY.md` stays persisted for grep-based recall',
+                'session JSONL preserves raw chronology',
+              ].map((item, index) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, x: -14 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, amount: 0.25 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/4 px-4 py-3 text-sm text-white/82"
+                >
                   <span className="h-2.5 w-2.5 rounded-full bg-cyan-300" />
                   {item}
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -361,8 +731,11 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
         <section className="space-y-6">
           <div className="space-y-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Where memory lives</p>
-            <h2 className="text-3xl font-semibold tracking-[-0.05em] text-slate-950 md:text-4xl" style={{ fontFamily: 'var(--font-display)' }}>
-              Three artifacts make the mechanism understandable
+            <h2
+              className="text-3xl font-semibold tracking-[-0.05em] text-slate-950 md:text-4xl"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              Three artifacts make the mechanism inspectable
             </h2>
           </div>
 
@@ -374,9 +747,10 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
                 <motion.article
                   key={panel.title}
                   initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + index * 0.05 }}
-                  className="rounded-[1.8rem] border border-slate-200 bg-white/80 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]"
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.25 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="rounded-[1.8rem] border border-slate-200 bg-white/84 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]"
                 >
                   <div className="mb-5 flex items-center gap-3">
                     <div className="rounded-2xl bg-slate-950 p-3 text-cyan-300">
