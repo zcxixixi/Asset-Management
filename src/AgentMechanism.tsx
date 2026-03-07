@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowRight,
@@ -48,6 +48,8 @@ interface GraphEdge {
   color: string;
   delay: number;
 }
+
+type ExplainMode = 'learn' | 'graph';
 
 const flowStages: FlowStage[] = [
   {
@@ -233,6 +235,27 @@ const filePanels = [
     title: 'memory/HISTORY.md',
     text: 'Timestamped summaries of older exchanges. Persisted for grep-based recall, not dumped wholesale into prompt context.',
     icon: FileSearch,
+  },
+];
+
+const learnSteps = [
+  {
+    step: 'A',
+    title: '先记住最近对话',
+    body: '你刚说的话、nanobot刚回复的话、还有工具调用结果，都会先放进会话文件里。这一层就是短期记忆。',
+    accent: 'from-cyan-400 to-sky-500',
+  },
+  {
+    step: 'B',
+    title: '模型只看最近的一段',
+    body: '下一次回答时，nanobot不会把全部历史都塞给模型，只拿最近还没整理过的那一段，再加上长期记忆文件。',
+    accent: 'from-blue-500 to-indigo-500',
+  },
+  {
+    step: 'C',
+    title: '太长了就压缩成长期记忆',
+    body: '当最近对话积累太多，nanobot会把旧内容总结成两份文件：`MEMORY.md` 保存稳定事实，`HISTORY.md` 保存可搜索摘要。',
+    accent: 'from-emerald-500 to-teal-500',
   },
 ];
 
@@ -423,6 +446,8 @@ function ArchitectureGraph() {
 }
 
 export default function AgentMechanism({ onBack }: AgentMechanismProps) {
+  const [mode, setMode] = useState<ExplainMode>('learn');
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -464,7 +489,7 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
               className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white/85 px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] text-slate-500 shadow-sm"
             >
               <ShieldCheck size={14} className="text-cyan-600" />
-              vivid systems view
+              learn mode first
             </motion.div>
 
             <motion.h1
@@ -487,6 +512,30 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
               session history, prompt assembly happen on the live stack, and consolidation push old context into local
               long-term memory files.
             </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12 }}
+              className="inline-flex w-fit rounded-full border border-slate-200 bg-white/88 p-1 shadow-sm"
+            >
+              <button
+                onClick={() => setMode('learn')}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                  mode === 'learn' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:text-slate-950'
+                }`}
+              >
+                Learn Mode
+              </button>
+              <button
+                onClick={() => setMode('graph')}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                  mode === 'graph' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:text-slate-950'
+                }`}
+              >
+                Graph Mode
+              </button>
+            </motion.div>
 
             <div className="grid gap-4 md:grid-cols-2">
               {implementationFacts.slice(0, 2).map((fact, index) => (
@@ -568,7 +617,76 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
           </motion.div>
         </section>
 
-        <ArchitectureGraph />
+        {mode === 'learn' ? (
+          <section className="space-y-8">
+            <div className="space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Plain explanation</p>
+              <h2
+                className="text-3xl font-semibold tracking-[-0.05em] text-slate-950 md:text-4xl"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                先只看 3 件事
+              </h2>
+              <p className="max-w-3xl text-base leading-8 text-slate-600">
+                如果把 nanobot 想成一个人在工作，它其实只做三件事：先记最近的话，再把最近的话拿去回答，最后把太旧的内容压缩存档。
+              </p>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-3">
+              {learnSteps.map((item, index) => (
+                <motion.article
+                  key={item.step}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.25 }}
+                  transition={{ delay: index * 0.06 }}
+                  className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white/88 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]"
+                >
+                  <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${item.accent}`} />
+                  <div className="mb-5 flex items-center justify-between">
+                    <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+                      {item.step}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">{item.title}</h3>
+                  <p className="mt-4 text-sm leading-7 text-slate-600">{item.body}</p>
+                </motion.article>
+              ))}
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+              <motion.article
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                className="rounded-[2rem] border border-slate-200 bg-slate-950 p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)]"
+              >
+                <p className="text-[11px] uppercase tracking-[0.28em] text-cyan-200/70">一句话版</p>
+                <p className="mt-4 text-xl leading-9 text-white/90">
+                  短期记忆 = 最近原始对话。
+                  <br />
+                  长期记忆 = 从旧对话里提炼出来的事实和摘要。
+                </p>
+              </motion.article>
+
+              <motion.article
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                className="rounded-[2rem] border border-slate-200 bg-white/88 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]"
+              >
+                <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">对应文件</p>
+                <div className="mt-4 space-y-3 text-sm leading-7 text-slate-600">
+                  <div><strong className="text-slate-950">短期：</strong>`sessions/*.jsonl`</div>
+                  <div><strong className="text-slate-950">长期事实：</strong>`memory/MEMORY.md`</div>
+                  <div><strong className="text-slate-950">长期摘要：</strong>`memory/HISTORY.md`</div>
+                </div>
+              </motion.article>
+            </div>
+          </section>
+        ) : (
+          <ArchitectureGraph />
+        )}
 
         <section className="space-y-8">
           <div className="flex items-end justify-between gap-4">
