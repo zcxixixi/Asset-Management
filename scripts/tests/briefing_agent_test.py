@@ -1,7 +1,10 @@
 import json
+import os
+import sys
 import unittest
 from unittest.mock import patch
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from advisor_contract import validate_payload
 from briefing_agent import generate_briefing
 
@@ -46,21 +49,21 @@ class TestBriefingAgent(unittest.TestCase):
             }
         ]
 
-        with patch("briefing_agent._call_llm", return_value=json.dumps(self._valid_payload(), ensure_ascii=False)):
-            payload = generate_briefing(holdings, news_context, global_context)
+        with patch("briefing_agent._run_analysis_agent", return_value=json.dumps(self._valid_payload(), ensure_ascii=False)):
+            payload = generate_briefing(holdings, news_context, global_context, time_of_day="morning")
 
         self.assertTrue(validate_payload(payload), "generate_briefing should always return schema-valid output")
         self.assertEqual(payload["source"], "AdvisorAgent")
 
     def test_generate_briefing_returns_fallback_on_invalid_llm_json(self):
-        with patch("briefing_agent._call_llm", return_value="{not valid json"):
+        with patch("briefing_agent._run_analysis_agent", return_value="{not valid json"):
             payload = generate_briefing([], [], [])
 
         self.assertTrue(validate_payload(payload), "fallback payload must remain schema-valid")
         self.assertEqual(payload["source"], "AdvisorAgent_Fallback")
 
     def test_generate_briefing_returns_fallback_on_llm_exception(self):
-        with patch("briefing_agent._call_llm", side_effect=TimeoutError("request timeout")):
+        with patch("briefing_agent._run_analysis_agent", side_effect=TimeoutError("request timeout")):
             payload = generate_briefing([], [], [])
 
         self.assertTrue(validate_payload(payload), "fallback payload must remain schema-valid")

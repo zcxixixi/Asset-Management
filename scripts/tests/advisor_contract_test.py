@@ -1,15 +1,19 @@
+import os
+from pathlib import Path
+import sys
 import json
 import unittest
-import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from advisor_contract import validate_payload, generate_fallback
 
-FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures', 'advisor_contract')
+FIXTURES_DIR = Path(__file__).resolve().parents[2] / "src" / "fixtures" / "advisor_contract"
 
 class TestAdvisorContract(unittest.TestCase):
 
     def load_fixture(self, filename: str) -> dict:
-        filepath = os.path.join(FIXTURES_DIR, filename)
-        with open(filepath, 'r') as f:
+        filepath = FIXTURES_DIR / filename
+        with filepath.open("r", encoding="utf-8") as f:
             return json.load(f)
 
     def test_normal_fixture_is_valid(self):

@@ -1,7 +1,10 @@
+import os
+import sys
 import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from advisor_contract import AdvisorBriefing
 from news_collector import get_portfolio_context
 

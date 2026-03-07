@@ -1,177 +1,183 @@
+from __future__ import annotations
+
+import asyncio
 import json
-import os
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from advisor_contract import generate_fallback, validate_payload
 
-try:
-    from openai import OpenAI
-except Exception:  # pragma: no cover - handled safely in runtime fallback.
-    OpenAI = None  # type: ignore[assignment]
+NANOBOT_ROOT = Path(__file__).resolve().parents[2]
+if str(NANOBOT_ROOT) not in sys.path:
+    sys.path.insert(0, str(NANOBOT_ROOT))
 
-SYSTEM_PROMPT = """
-You are a veteran Wall Street chief investment strategist with 25 years of experience.
-You manage a private client's personal portfolio. The client trusts you to be brutally honest.
-Return ONLY one valid JSON object and nothing else.
+ANALYSIS_WORKSPACE = Path(__file__).resolve().parent / "analysis_agent_workspace"
 
-## YOUR IDENTITY
-- You are NOT an AI, chatbot, or assistant. You are a named human strategist: "James Chen, CIO".
-- You speak with the confidence and authority of someone who has survived 2008, COVID crash, and the 2022 bear.
-- You have strong, specific opinions. You never say "it depends" or "consider your risk tolerance."
+USER_PROMPT_TEMPLATE = """
+You are preparing the structured advisor briefing for the current portfolio cycle.
 
-## ANALYSIS METHODOLOGY
-1. PORTFOLIO WEIGHT MATTERS: The user will provide each holding's weight (%). 
-   - A 30% position deserves 3x more analysis depth than a 2% position.
-   - Order your suggestions by portfolio weight, largest first.
-   - For tiny positions (<5%), one sentence is enough. For core positions (>15%), write a detailed thesis.
-2. NEWS CROSS-REFERENCING: Connect specific news headlines to specific holdings.
-   - BAD: "Market conditions suggest caution"
-   - GOOD: "Buffett dumping $187B in cash while you hold 29% in SGOV means your defensive posture is validated — but the 19% QQQ leg is exposed to the same tech repricing he's warning about."
-3. INTER-ASSET CORRELATION: Analyze how your holdings interact.
-   - Example: "Your SGOV + GOLD combo (57% of portfolio) is a textbook stagflation hedge, but your QQQ + NVDA exposure (22%) directly contradicts this thesis."
-4. RISK-WEIGHTED VERDICT: Your BULLISH/BEARISH/NEUTRAL verdict must reflect the WEIGHTED portfolio, not individual stocks.
+Rules:
+- Return only valid JSON matching the schema below.
+- Give one suggestion per holding, ordered by portfolio weight descending.
+- Tie each rationale to a concrete news item when possible.
+- You may use web_search and web_fetch if the supplied context is stale or incomplete.
+- Do not invent price targets or unsupported numbers.
 
-## BANNED PHRASES (immediate disqualification)
-"confluence of", "mixed messages", "navigating", "dynamic landscape", "delving into",
-"it's worth noting", "investors should consider", "market participants", "going forward",
-"amid uncertainty", "remains to be seen", "cautiously optimistic", "prudent approach"
-
-## OUTPUT QUALITY
-- headline: A punchy Bloomberg-terminal style alert, max 8 words. Think ticker-tape urgency.
-- macro_summary: Exactly 2-3 sentences. Be a storyteller, not a summarizer. Connect the dots between seemingly unrelated news items. End with a provocative insight.
-- suggestions: One per holding. Rationale must reference a SPECIFIC news item provided.
-- risks: Name 2-3 SPECIFIC, non-obvious risks. Not generic "market volatility" — name the exact trigger.
-- disclaimer: Keep it short and professional.
-
-The JSON MUST match this exact schema:
-{
+Required JSON schema:
+{{
   "generated_at": "ISO-8601 timestamp string",
   "source": "AdvisorAgent",
   "headline": "string",
   "macro_summary": "string",
   "verdict": "BULLISH | BEARISH | NEUTRAL",
   "suggestions": [
-    {
-      "asset": "string (use the ticker symbol)",
+    {{
+      "asset": "ticker symbol string",
       "action": "BUY | SELL | HOLD",
       "rationale": "string"
-    }
+    }}
   ],
   "risks": ["string"],
   "news_context": [
-    {
+    {{
       "headline": "string",
       "source": "string",
       "timestamp": "string",
       "relevance_score": "number (optional)"
-    }
+    }}
   ],
   "global_context": [
-    {
+    {{
       "headline": "string",
       "source": "string",
       "timestamp": "string",
       "relevance_score": "number (optional)"
-    }
+    }}
   ],
   "disclaimer": "string"
-}
+}}
 
-Hard constraints:
-- Use exactly the keys above. Do not add extra keys.
-- Do not output markdown or prose — pure JSON only.
-- Do not hallucinate numeric price targets or performance metrics.
+Time of day: {time_of_day}
+Current UTC time: {generated_at}
+
+Portfolio package:
+{payload}
 """.strip()
 
 
-def _call_llm(system_prompt: str, user_payload: str) -> str:
-    if OpenAI is None:
-        raise RuntimeError("openai package is not available")
-
-    api_key = (os.getenv("GLM_API_KEY") or os.getenv("OPENAI_API_KEY") or "").strip()
-    if not api_key:
-        raise RuntimeError("Missing API key: set GLM_API_KEY or OPENAI_API_KEY")
-
-    base_url = (os.getenv("GLM_BASE_URL") or os.getenv("OPENAI_BASE_URL") or "https://open.bigmodel.cn/api/paas/v4/").strip()
-    model = (os.getenv("GLM_MODEL") or os.getenv("OPENAI_MODEL") or "glm-4-plus").strip()
-
-    client = OpenAI(api_key=api_key, base_url=base_url)
-    completion = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_payload},
-        ],
-        response_format={"type": "json_object"},
-    )
-
-    if not completion.choices:
-        raise RuntimeError("Empty model response choices")
-
-    content: Any = completion.choices[0].message.content
-    if not isinstance(content, str) or not content.strip():
-        raise RuntimeError("Empty model response content")
-
-    return content
-
-
-def _enrich_holdings(holdings: list) -> list:
-    """Add portfolio weight (%) to each holding for the LLM to reason about."""
+def _enrich_holdings(holdings: list[dict[str, Any]] | list[Any]) -> list[dict[str, Any]]:
     total_value = 0.0
-    enriched = []
+    enriched: list[dict[str, Any]] = []
 
-    for h in holdings:
-        if not isinstance(h, dict):
+    for item in holdings or []:
+        if not isinstance(item, dict):
             continue
         try:
-            value = float(h.get("value", 0) or 0)
+            value = float(str(item.get("value", 0)).replace(",", "") or 0)
         except (TypeError, ValueError):
             value = 0.0
         total_value += value
-        enriched.append({**h, "_value": value})
+        enriched.append({**item, "_value": value})
 
     if total_value <= 0:
-        return holdings
+        return [item for item in holdings if isinstance(item, dict)]
 
-    result = []
-    for h in enriched:
-        weight_pct = round((h["_value"] / total_value) * 100, 1)
-        entry = {k: v for k, v in h.items() if k != "_value"}
-        entry["portfolio_weight_pct"] = weight_pct
+    result: list[dict[str, Any]] = []
+    for item in enriched:
+        entry = {key: value for key, value in item.items() if key != "_value"}
+        entry["portfolio_weight_pct"] = round((item["_value"] / total_value) * 100, 1)
         result.append(entry)
 
-    # Sort by weight descending so LLM sees biggest positions first
-    result.sort(key=lambda x: x.get("portfolio_weight_pct", 0), reverse=True)
+    result.sort(key=lambda item: item.get("portfolio_weight_pct", 0), reverse=True)
     return result
 
 
-def generate_briefing(holdings: list, news_context: list, global_context: list) -> dict:
-    enriched_holdings = _enrich_holdings(holdings if isinstance(holdings, list) else [])
+def _strip_json_fences(text: str) -> str:
+    stripped = text.strip()
+    if stripped.startswith("```"):
+        stripped = stripped.split("\n", 1)[-1]
+    if stripped.endswith("```"):
+        stripped = stripped.rsplit("```", 1)[0]
+    return stripped.strip()
 
-    user_payload = {
-        "portfolio_holdings": enriched_holdings,
-        "portfolio_news": news_context if isinstance(news_context, list) else [],
-        "global_macro_news": global_context if isinstance(global_context, list) else [],
-        "instruction": (
-            "Analyze this portfolio. Holdings are sorted by weight — prioritize the largest positions. "
-            "Cross-reference each holding against the provided news. "
-            "Give ONE suggestion per holding. Be brutally specific."
-        ),
-    }
+
+async def _run_analysis_agent(prompt: str, session_suffix: str) -> str:
+    from nanobot.agent.loop import AgentLoop
+    from nanobot.bus.queue import MessageBus
+    from nanobot.config.loader import load_config
+    from nanobot.providers.factory import make_provider
+
+    config = load_config()
+    provider = make_provider(config)
+    bus = MessageBus()
+    agent = AgentLoop(
+        bus=bus,
+        provider=provider,
+        workspace=ANALYSIS_WORKSPACE,
+        model=config.agents.defaults.model,
+        temperature=config.agents.defaults.temperature,
+        max_tokens=config.agents.defaults.max_tokens,
+        max_iterations=config.agents.defaults.max_tool_iterations,
+        memory_window=max(8, min(config.agents.defaults.memory_window, 24)),
+        reasoning_effort=config.agents.defaults.reasoning_effort,
+        brave_api_key=config.tools.web.search.api_key or None,
+        web_proxy=config.tools.web.proxy or None,
+        exec_config=config.tools.exec,
+        restrict_to_workspace=True,
+        session_manager=None,
+        mcp_servers={},
+        channels_config=config.channels,
+    )
+
+    for tool_name in list(agent.tools.tool_names):
+        if tool_name not in {"web_search", "web_fetch"}:
+            agent.tools.unregister(tool_name)
 
     try:
-        user_payload_json = json.dumps(user_payload, ensure_ascii=False)
-        raw_output = _call_llm(SYSTEM_PROMPT, user_payload_json)
-        print("RAW LLM OUTPUT:", raw_output)
-        parsed = json.loads(raw_output) if isinstance(raw_output, str) else raw_output
+        return await agent.process_direct(
+            prompt,
+            session_key=f"asset-analysis:{session_suffix}",
+            channel="cli",
+            chat_id="asset-analysis",
+        )
+    finally:
+        await agent.close_mcp()
+
+
+def generate_briefing(
+    holdings: list,
+    news_context: list,
+    global_context: list,
+    *,
+    time_of_day: str = "morning",
+) -> dict:
+    generated_at = datetime.now(timezone.utc).isoformat()
+    payload = {
+        "portfolio_holdings": _enrich_holdings(holdings if isinstance(holdings, list) else []),
+        "portfolio_news": news_context if isinstance(news_context, list) else [],
+        "global_macro_news": global_context if isinstance(global_context, list) else [],
+    }
+    prompt = USER_PROMPT_TEMPLATE.format(
+        time_of_day=time_of_day,
+        generated_at=generated_at,
+        payload=json.dumps(payload, ensure_ascii=False, indent=2),
+    )
+
+    try:
+        raw_output = asyncio.run(
+            _run_analysis_agent(
+                prompt,
+                session_suffix=f"{time_of_day}:{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}",
+            )
+        )
+        parsed = json.loads(_strip_json_fences(raw_output))
         if not isinstance(parsed, dict):
-            print("Parsed output is not a dict")
             return generate_fallback()
         if not validate_payload(parsed):
-            print("Payload validation failed!")
             return generate_fallback()
-    except Exception as e:
-        print(f"Briefing Agent Exception: {e}")
+        return parsed
+    except Exception as exc:
+        print(f"Briefing Agent Exception: {exc}")
         return generate_fallback()
-
-    return parsed

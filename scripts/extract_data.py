@@ -10,11 +10,9 @@ Real-Time Asset Synchronization Script
 
 from __future__ import annotations
 
-import json
 import os
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, Dict, List
 
 import pandas as pd
@@ -22,8 +20,8 @@ import yfinance as yf
 
 from workbook_sync import WorkbookSyncError, normalize_date_str, sync_workbook
 from news_collector import get_portfolio_context
-from briefing_agent import generate_briefing
 from advisor_contract import generate_fallback
+from pipeline_state import write_analysis_context, write_data_outputs
 
 try:
     from dotenv import load_dotenv
@@ -32,7 +30,6 @@ except ImportError:
     pass
 
 INPUT_PATH = "assets.xlsx"
-OUTPUT_PATHS = ["src/data.json", "public/data.json"]
 REQUIRED_HOLDINGS_COLUMNS = {"symbol", "name", "quantity"}
 REQUIRED_DAILY_COLUMNS = {"date", "cash_usd", "gold_usd", "stocks_usd", "total_usd", "nav", "note"}
 MAX_NEWS_ITEMS = 8
@@ -131,12 +128,9 @@ def get_realtime_price(symbol: str, mock_date: datetime | None = None, fallback_
 
 
 def write_json_outputs(payload: Dict[str, Any]) -> None:
-    for output in OUTPUT_PATHS:
-        output_path = Path(output)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with output_path.open("w", encoding="utf-8") as file:
-            json.dump(payload, file, indent=2, ensure_ascii=False)
-        print(f"Updated {output_path}")
+    write_data_outputs(payload)
+    for path in ("src/data.json", "public/data.json"):
+        print(f"Updated {path}")
 
 
 def parse_published_at(raw_value: Any) -> str:
@@ -564,18 +558,7 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
         global_context_list = context_result.get("global_context", [])
         print(f"Collected {len(news_context_list)} portfolio news items and {len(global_context_list)} global news items.")
 
-    print("\nGenerating personalized advisor briefing via new pipeline...")
-    # Map back original old struct to fit extract data pipeline signature if needed? 
-    # Actually, the new schema is different. We should just call the briefing_agent.
-    try:
-        advisor_briefing = generate_briefing(
-            holdings=live_holdings,
-            news_context=news_context_list,
-            global_context=global_context_list
-        )
-    except Exception as e:
-        print(f"Briefing generation failed: {e}. Using fallback.")
-        advisor_briefing = generate_fallback()
+    advisor_briefing = generate_fallback()
 
     insights = briefing_to_insights(advisor_briefing)
 
@@ -604,10 +587,18 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
         "performance": {"1d": "Live", "summary": "Broker Export Integration"},
     }
 
+    write_analysis_context(
+        {
+            "generated_at": sync_now.strftime("%Y-%m-%d %H:%M:%S"),
+            "holdings": live_holdings,
+            "news_context": news_context_list,
+            "global_context": global_context_list,
+        }
+    )
     write_json_outputs(response)
 
     print(
-        f"\n✅ Pushed synchronized data to {', '.join(OUTPUT_PATHS)}. "
+        "\n✅ Pushed synchronized data to src/data.json, public/data.json. "
         f"Total NAV: ${total_balance:,.2f}"
     )
     return response
