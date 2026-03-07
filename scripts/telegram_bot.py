@@ -19,6 +19,17 @@ def load_data(filepath: str) -> dict:
         return {}
 
 
+def resolve_data_path() -> Path:
+    base_dir = Path(__file__).parent.parent
+    public_path = base_dir / "public" / "data.json"
+    if public_path.exists():
+        return public_path
+    bundled_path = base_dir / "src" / "data.json"
+    if bundled_path.exists():
+        return bundled_path
+    raise FileNotFoundError(f"Could not find data.json under {base_dir / 'public'} or {base_dir / 'src'}")
+
+
 def format_message(time_of_day: str, data: dict) -> str:
     total_balance = data.get("total_balance", "Unknown")
     
@@ -111,6 +122,35 @@ async def send_broadcast(message: str):
         sys.exit(1)
 
 
+async def send_alert(error_message: str, failed_stage: str):
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+
+    if not bot_token or not chat_id:
+        print("Error: Cannot send alert - TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID required.")
+        return
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    message = (
+        f"🚨 <b>Pipeline Alert: {failed_stage}</b>\n\n"
+        f"⏰ <b>Time:</b> {timestamp}\n"
+        f"❌ <b>Error:</b> <code>{error_message}</code>\n\n"
+        f"⚠️ <i>Please check the logs and investigate immediately.</i>"
+    )
+
+    try:
+        bot = Bot(token=bot_token)
+        await bot.send_message(
+            chat_id=chat_id,
+            text=message,
+            parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True,
+        )
+        print("Alert sent successfully!")
+    except Exception as e:
+        print(f"Failed to send alert: {e}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Nanobot Telegram Broadcaster")
     parser.add_argument(
@@ -123,13 +163,10 @@ def main():
     args = parser.parse_args()
 
     # Determine which data to load
-    base_dir = Path(__file__).parent.parent
-    data_path = base_dir / "public" / "data.json"
-    if not data_path.exists():
-        data_path = base_dir / "src" / "data.json"
-    
-    if not data_path.exists():
-        print(f"Error: Could not find data.json at {data_path}")
+    try:
+        data_path = resolve_data_path()
+    except FileNotFoundError as exc:
+        print(f"Error: {exc}")
         sys.exit(1)
 
     print(f"Reading data from {data_path}...")

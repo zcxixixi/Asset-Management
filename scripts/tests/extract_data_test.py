@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Local data extraction regression test.
-Validates that src/extract_data.py produces a dashboard-compatible JSON payload.
+Validates that scripts/extract_data.py produces a dashboard-compatible JSON payload.
 """
 import json
 import subprocess

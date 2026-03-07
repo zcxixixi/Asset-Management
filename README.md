@@ -5,47 +5,55 @@ Personal portfolio tracker with AI-driven daily briefings, delivered via Telegra
 ## Architecture
 
 ```
-assets.xlsx → extract_data.py → data.json → Dashboard (GitHub Pages)
-                    ↓
-           news_collector.py  →  briefing_agent.py  →  telegram_bot.py
-           (yfinance news)       (Gemini LLM)          (Telegram API)
+nanobot cron (command job) → scripts/asset_pipeline.py run-cycle
+                                   ↓
+                          update-data → analyze-portfolio → send-briefing → publish-data
+                                   ↓
+                  assets.xlsx → scripts/extract_data.py → src/public data.json → Dashboard
+                                   ↓
+              scripts/news_collector.py → scripts/briefing_agent.py → scripts/telegram_bot.py
 ```
 
-**Three agents, one pipeline, zero manual steps.**
+Scheduling is deterministic; investment analysis stays agentic.
 
 ## File Map
 
 | File | Purpose |
 |------|---------|
-| `src/extract_data.py` | Main orchestrator — reads Excel, fetches prices, runs agents, writes JSON |
-| `src/news_collector.py` | Agent 1 — collects and ranks news per holding via yfinance |
-| `src/briefing_agent.py` | Agent 2 — generates AI analysis via LLM (Gemini/GLM) |
-| `src/telegram_bot.py` | Agent 3 — formats and sends Telegram broadcasts |
-| `src/advisor_contract.py` | Pydantic schema + fallback (the "contract" between agents) |
-| `src/workbook_sync.py` | Excel read/write + daily row sync |
+| `scripts/asset_pipeline.py` | Canonical CLI entrypoint for update/analyze/send/publish |
+| `scripts/extract_data.py` | Update stage — reads Excel, fetches prices/news, writes JSON + analysis context |
+| `scripts/news_collector.py` | Collects and ranks portfolio/global news via yfinance |
+| `scripts/briefing_agent.py` | Dedicated nanobot research agent for portfolio analysis |
+| `scripts/telegram_bot.py` | Formats broadcasts and sends Telegram alerts/messages |
+| `scripts/advisor_contract.py` | Pydantic schema + fallback for `advisor_briefing` |
+| `scripts/workbook_sync.py` | Excel read/write + daily row sync |
 | `assets.xlsx` | Your portfolio (single source of truth) |
 
 ## Run Manually
 
 ```bash
-# 1. Refresh data + AI analysis
-OPENAI_API_KEY="your-key" OPENAI_BASE_URL="http://127.0.0.1:8045/v1" OPENAI_MODEL="gemini-3-flash" \
-  python3 src/extract_data.py
+# 1. Refresh data only
+python3 scripts/asset_pipeline.py update-data
 
-# 2. Send to Telegram
-TELEGRAM_BOT_TOKEN="your-token" TELEGRAM_CHAT_ID="your-id" \
-  python3 src/telegram_bot.py --time_of_day morning|afternoon|evening
+# 2. Run nanobot-backed portfolio analysis
+python3 scripts/asset_pipeline.py analyze-portfolio --time-of-day morning
+
+# 3. Send to Telegram
+python3 scripts/asset_pipeline.py send-briefing --time-of-day morning
+
+# 4. Full scheduled cycle
+python3 scripts/asset_pipeline.py run-cycle --time-of-day morning --send-telegram --publish
 ```
 
 ## Automation
 
 | What | Who | When |
 |------|-----|------|
-| Pipeline + auto-publish + Telegram | Nanobot Cron (`~/.nanobot/cron/jobs.json` → `run_briefing.sh`) | Weekdays 8:30, 13:30, 20:00 HKT |
+| Pipeline + auto-publish + Telegram | Nanobot Cron direct command (`~/.nanobot/cron/jobs.json` → `scripts/asset_pipeline.py`) | Weekdays 8:30, 13:30, 20:00 HKT |
 | CI (lint + tests) | GitHub Actions `auto_test.yml` | Every push |
 | Deploy dashboard | GitHub Actions `deploy-pages.yml` | Triggered by pushes to `main` |
 
-`run_briefing.sh` is the single entrypoint for scheduled runs. It refreshes portfolio data, sends the Telegram briefing, and when `AUTO_PUBLISH=1` it commits only `assets.xlsx`, `src/data.json`, and `public/data.json` to `main`. That push triggers GitHub Pages deployment.
+`run_briefing.sh` remains as a thin compatibility wrapper, but scheduled runs now call the Python CLI directly. `run-cycle` refreshes portfolio data, runs the dedicated nanobot analysis agent, sends the Telegram briefing, and when `--publish` is enabled it commits only `assets.xlsx`, `src/data.json`, and `public/data.json` to `main`.
 
 The frontend polls `data.json` every 60 seconds while the page is visible. Open tabs automatically pick up new `last_updated` payloads after the published JSON changes on GitHub Pages.
 
@@ -58,8 +66,11 @@ npm install && npm run dev
 ## Tests
 
 ```bash
-python3 src/extract_data_test.py
-python3 src/backfill_regression_test.py
-python3 src/stability_test.py
-python3 src/advisor_contract_test.py
+python3 scripts/tests/extract_data_test.py
+python3 scripts/tests/backfill_regression_test.py
+python3 scripts/tests/stability_test.py
+python3 scripts/tests/advisor_contract_test.py
+python3 scripts/tests/briefing_agent_test.py
+python3 scripts/tests/news_collector_test.py
+python3 scripts/tests/pipeline_integration_test.py
 ```

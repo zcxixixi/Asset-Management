@@ -1,41 +1,49 @@
-import unittest
-from unittest.mock import patch
 import os
 import sys
-import json
+import unittest
+from unittest.mock import patch
 
-# Add src to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
-
-from extract_data import extract_data
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from asset_pipeline import run_cycle
 
 class TestPipelineIntegration(unittest.TestCase):
-    @patch('extract_data.get_portfolio_context')
-    @patch('extract_data.generate_briefing')
-    @patch('extract_data.sync_workbook')
-    def test_pipeline_execution_mocked(self, mock_sync, mock_generate, mock_context):
-        # Setup mocks
-        mock_sync.return_value = {"last_daily_date": "2026-03-01", "daily_count": 10, "backup_path": "mock/path"}
-        
-        mock_context.return_value = {
-            "news_context": [{"headline": "Test News 1"}],
-            "global_context": [{"headline": "Test Macro 1"}]
-        }
-        
-        mock_generate.return_value = {
-            "verdict": "BULLISH",
-            "suggestions": [{"asset": "NVDA", "action": "HOLD", "rationale": "Reason"}],
-            "macro_summary": "Test Summary",
-            "headline": "Test Headline"
-        }
-        
-        # Test data extraction (time travel to avoid yfinance actual calls)
-        result = extract_data(mock_date_str="2026-03-01")
-        
-        # Verify the pipeline called out to the sub-agents correctly
-        self.assertEqual(result["advisor_briefing"]["verdict"], "BULLISH")
-        self.assertEqual(len(result["insights"]), 1)
-        self.assertEqual(result["insights"][0]["asset"], "NVDA")
+    @patch("asset_pipeline.publish_data")
+    @patch("asset_pipeline.send_briefing")
+    @patch("asset_pipeline.apply_fallback_briefing")
+    @patch("asset_pipeline.analyze_portfolio", side_effect=RuntimeError("analysis boom"))
+    @patch("asset_pipeline.update_data")
+    def test_run_cycle_continues_with_fallback_when_analysis_fails(
+        self,
+        mock_update,
+        mock_analyze,
+        mock_fallback,
+        mock_send,
+        mock_publish,
+    ):
+        exit_code = run_cycle(time_of_day="morning", send_telegram=True, publish=True)
+
+        self.assertEqual(exit_code, 0)
+        mock_update.assert_called_once()
+        mock_analyze.assert_called_once_with(time_of_day="morning")
+        mock_fallback.assert_called_once()
+        mock_send.assert_called_once_with(time_of_day="morning")
+        mock_publish.assert_called_once()
+
+    @patch("asset_pipeline.publish_data")
+    @patch("asset_pipeline.send_briefing", side_effect=RuntimeError("telegram down"))
+    @patch("asset_pipeline.analyze_portfolio")
+    @patch("asset_pipeline.update_data")
+    def test_run_cycle_stops_before_publish_when_send_fails(
+        self,
+        mock_update,
+        mock_analyze,
+        mock_send,
+        mock_publish,
+    ):
+        exit_code = run_cycle(time_of_day="evening", send_telegram=True, publish=True)
+
+        self.assertEqual(exit_code, 1)
+        mock_publish.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()

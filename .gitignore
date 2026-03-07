@@ -34,3 +34,5 @@ __pycache__/
 venv_test/
 finish_script.sh
 test_python.sh
+scripts/analysis_agent_workspace/sessions/
+scripts/analysis_agent_workspace/memory/
