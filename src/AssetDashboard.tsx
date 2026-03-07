@@ -126,11 +126,19 @@ interface AssetDashboardProps {
   rawData?: RawDashboardData;
   onOpenAdvisor?: () => void;
   onOpenNews?: () => void;
+  onOpenMechanism?: () => void;
   isPrivacyMode: boolean;
   setIsPrivacyMode: (val: boolean) => void;
 }
 
-export default function AssetDashboard({ rawData: propRawData, onOpenAdvisor, onOpenNews, isPrivacyMode, setIsPrivacyMode }: AssetDashboardProps) {
+export default function AssetDashboard({
+  rawData: propRawData,
+  onOpenAdvisor,
+  onOpenNews,
+  onOpenMechanism,
+  isPrivacyMode,
+  setIsPrivacyMode,
+}: AssetDashboardProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
   const rawData = useLiveDashboardData(
@@ -188,6 +196,13 @@ export default function AssetDashboard({ rawData: propRawData, onOpenAdvisor, on
             </div>
           </div>
           <div className="flex items-center space-x-3">
+            <button
+              onClick={() => onOpenMechanism?.()}
+              className="hidden items-center space-x-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 shadow-sm transition-all hover:border-blue-200 hover:text-blue-700 md:flex"
+            >
+              <Database size={14} />
+              <span>Agent Memory</span>
+            </button>
             <button
               onClick={() => onOpenNews?.()}
               className="flex items-center space-x-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg transition-all"
