@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer, YAxis, XAxis } from 'recharts';
-import { Eye, EyeOff, Sparkles, ShieldCheck, LayoutDashboard, ListFilter, Activity, Fingerprint, Database, ChevronRight } from 'lucide-react';
+import { Eye, EyeOff, Sparkles, ShieldCheck, LayoutDashboard, ListFilter, Activity, Fingerprint, ChevronRight } from 'lucide-react';
 import { bundledDashboardData, useLiveDashboardData } from './live_data';
 import { type NewsItem } from './NewsFeed';
 
@@ -126,7 +126,6 @@ interface AssetDashboardProps {
   rawData?: RawDashboardData;
   onOpenAdvisor?: () => void;
   onOpenNews?: () => void;
-  onOpenMechanism?: () => void;
   isPrivacyMode: boolean;
   setIsPrivacyMode: (val: boolean) => void;
 }
@@ -135,7 +134,6 @@ export default function AssetDashboard({
   rawData: propRawData,
   onOpenAdvisor,
   onOpenNews,
-  onOpenMechanism,
   isPrivacyMode,
   setIsPrivacyMode,
 }: AssetDashboardProps) {
@@ -196,13 +194,6 @@ export default function AssetDashboard({
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <button
-              onClick={() => onOpenMechanism?.()}
-              className="hidden items-center space-x-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 shadow-sm transition-all hover:border-blue-200 hover:text-blue-700 md:flex"
-            >
-              <Database size={14} />
-              <span>Agent Memory</span>
-            </button>
             <button
               onClick={() => onOpenNews?.()}
               className="flex items-center space-x-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg transition-all"
@@ -277,7 +268,7 @@ export default function AssetDashboard({
               <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {dashboardData.assets.map((asset) => (
                   <div key={asset.label} className="p-6 rounded-[2rem] bg-white border border-slate-200/60 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-2 opacity-10"><Database size={40} /></div>
+                    <div className="absolute top-0 right-0 p-2 opacity-10"><Fingerprint size={40} /></div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate">{asset.label}</p>
                     <p className="text-2xl font-bold text-slate-800 tracking-tight font-mono"><span className="text-slate-300 mr-1">$</span>{p(asset.value)}</p>
                   </div>

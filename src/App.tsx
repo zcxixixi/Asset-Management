@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import AssetDashboard, { type RawDashboardData } from './AssetDashboard';
-import AgentMechanism from './AgentMechanism';
 import AdvisorBriefing, { type AdvisorPayload } from './AdvisorBriefing';
 import NewsFeed, { type NewsItem } from './NewsFeed';
 import { bundledDashboardData, useLiveDashboardData } from './live_data';
 
-export type ViewState = 'dashboard' | 'advisor' | 'news' | 'mechanism';
+export type ViewState = 'dashboard' | 'advisor' | 'news';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
@@ -33,7 +32,6 @@ function App() {
           rawData={dashboardPayload}
           onOpenAdvisor={() => setCurrentView('advisor')}
           onOpenNews={() => setCurrentView('news')}
-          onOpenMechanism={() => setCurrentView('mechanism')}
           isPrivacyMode={isPrivacyMode}
           setIsPrivacyMode={setIsPrivacyMode}
         />
@@ -53,10 +51,6 @@ function App() {
           onBack={() => setCurrentView('dashboard')}
           isPrivacyMode={isPrivacyMode}
         />
-      )}
-
-      {currentView === 'mechanism' && (
-        <AgentMechanism onBack={() => setCurrentView('dashboard')} />
       )}
     </>
   );
