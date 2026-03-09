@@ -470,7 +470,7 @@ export default function AgentMechanism({ onBack }: AgentMechanismProps) {
             className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-950"
           >
             <ChevronLeft size={16} className="transition group-hover:-translate-x-0.5" />
-            Dashboard Demo
+            Asset Dashboard
           </button>
 
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/82 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">

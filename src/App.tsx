@@ -8,7 +8,7 @@ import { bundledDashboardData, useLiveDashboardData } from './live_data';
 export type ViewState = 'dashboard' | 'advisor' | 'news' | 'mechanism';
 
 function App() {
-  const [currentView, setCurrentView] = useState<ViewState>('mechanism');
+  const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const dashboardPayload = useLiveDashboardData(bundledDashboardData as RawDashboardData);
 
   // We hoist privacy mode here so it persists across views
