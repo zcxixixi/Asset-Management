@@ -26,14 +26,6 @@ function getCachedData(): DataCache | null {
   }
 }
 
-function setCacheData(cache: DataCache): void {
-  try {
-    localStorage.setItem(DATA_CACHE_KEY, JSON.stringify(cache));
-  } catch {
-    // Ignore localStorage failures and continue with network fetches.
-  }
-}
-
 function setCacheDataForKey(key: string, cache: DataCache): void {
   try {
     localStorage.setItem(key, JSON.stringify(cache));
