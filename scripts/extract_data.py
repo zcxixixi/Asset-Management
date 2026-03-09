@@ -33,6 +33,7 @@ INPUT_PATH = "assets.xlsx"
 REQUIRED_HOLDINGS_COLUMNS = {"symbol", "name", "quantity"}
 REQUIRED_DAILY_COLUMNS = {"date", "cash_usd", "gold_usd", "stocks_usd", "total_usd", "nav", "note"}
 MAX_NEWS_ITEMS = 8
+ACTIVE_FALSE_VALUES = {"0", "false", "no", "off", "inactive", "sold"}
 
 
 def safe_float(value: Any) -> float:
@@ -47,6 +48,33 @@ def safe_float(value: Any) -> float:
         return float(value)
     except Exception:
         return 0.0
+
+
+def _is_active_row(row: pd.Series) -> bool:
+    """Allow optional active flag in holdings sheet."""
+    if "active" not in row.index:
+        return True
+    raw = row.get("active")
+    if pd.isna(raw):
+        return True
+    text = str(raw).strip().lower()
+    return text not in ACTIVE_FALSE_VALUES
+
+
+def _select_latest_holdings_snapshot(df_holdings: pd.DataFrame) -> pd.DataFrame:
+    """Use only the newest timestamp snapshot when timestamp column is available."""
+    if "timestamp" not in df_holdings.columns:
+        return df_holdings
+
+    ts = pd.to_datetime(df_holdings["timestamp"], errors="coerce")
+    if ts.notna().sum() == 0:
+        return df_holdings
+
+    latest = ts.max()
+    selected = df_holdings.loc[ts == latest].copy()
+    if selected.empty:
+        return df_holdings
+    return selected
 
 
 def to_yf_symbol(symbol: str) -> str:
@@ -441,6 +469,16 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
     if missing_holdings_columns:
         raise ValueError(f"Holdings sheet missing columns: {sorted(missing_holdings_columns)}")
 
+    df_holdings = _select_latest_holdings_snapshot(df_holdings)
+
+    # Keep latest row per symbol if duplicates exist in a snapshot.
+    df_holdings["_symbol_norm"] = df_holdings["symbol"].astype(str).str.strip().str.upper()
+    df_holdings = (
+        df_holdings[df_holdings["_symbol_norm"] != ""]
+        .drop_duplicates(subset=["_symbol_norm"], keep="last")
+        .drop(columns=["_symbol_norm"])
+    )
+
     assets_grouped: Dict[str, float] = {}
     total_balance = 0.0
     tracked_symbols: List[str] = []
@@ -455,6 +493,11 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
         symbol = str(row.get("symbol", "CASH")).strip()
         name = str(row.get("name", "Unknown")).strip()
         qty = safe_float(row.get("quantity"))
+        is_cash = symbol.upper() in {"CASH", "USD"}
+        if (not is_cash and qty <= 0) or (not _is_active_row(row)):
+            print(f"[SKIP] {symbol}: inactive or non-positive quantity ({qty})")
+            continue
+
         fallback_price = safe_float(row.get("price_usd"))
         if fallback_price <= 0 and qty > 0:
             fallback_price = safe_float(row.get("market_value_usd")) / qty
@@ -481,7 +524,7 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
             }
         )
 
-        if symbol.upper() not in {"CASH", "USD"} and market_value > 0:
+        if not is_cash and market_value > 0:
             live_holdings.append(
                 {
                     "symbol": symbol,
@@ -491,7 +534,7 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
                 }
             )
 
-        tracked_symbols.append(symbol)
+            tracked_symbols.append(symbol)
 
     final_assets = [
         {"label": "Cash USD", "value": f"{assets_grouped.get('Cash USD', assets_grouped.get('USD Cash', 0.0)):,.2f}"},
