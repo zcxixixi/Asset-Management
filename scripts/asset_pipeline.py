@@ -9,7 +9,13 @@ import sys
 from advisor_contract import generate_fallback
 from briefing_agent import generate_briefing
 from extract_data import extract_data
-from pipeline_state import REPO_ROOT, load_analysis_context, load_dashboard_payload, update_advisor_briefing
+from pipeline_state import (
+    REPO_ROOT,
+    load_analysis_context,
+    load_dashboard_payload,
+    update_advisor_briefing,
+    using_private_workbook,
+)
 from telegram_bot import format_message, send_alert, send_broadcast
 
 DATA_FILES = ["assets.xlsx", "src/data.json", "public/data.json"]
@@ -108,6 +114,9 @@ def publish_data(
     remote_name: str = DEFAULT_REMOTE_NAME,
     commit_prefix: str = DEFAULT_COMMIT_PREFIX,
 ) -> bool:
+    if using_private_workbook():
+        raise RuntimeError("refusing to publish while using a private local workbook")
+
     if _has_non_data_changes():
         raise RuntimeError("pipeline produced non-data changes; refusing publish")
 

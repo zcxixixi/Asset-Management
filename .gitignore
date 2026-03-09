@@ -25,6 +25,9 @@ dist-ssr
 *.sw?
 
 public/assets.xlsx
+assets.local.xlsx
+src/data.local.json
+public/data.local.json
 .env
 .env.*
 backups/

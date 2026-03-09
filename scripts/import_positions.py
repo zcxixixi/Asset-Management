@@ -10,7 +10,7 @@ from typing import Iterable
 import pandas as pd
 from openpyxl import load_workbook
 
-ASSET_XLSX = Path(__file__).resolve().parents[1] / "assets.xlsx"
+from pipeline_state import resolve_workbook_path
 
 SYMBOL_KEYS = (
     "symbol",
@@ -102,7 +102,8 @@ def apply_to_assets(
     keep_symbols: set[str],
     zero_missing: bool,
 ) -> dict[str, object]:
-    wb = load_workbook(ASSET_XLSX)
+    asset_xlsx = resolve_workbook_path()
+    wb = load_workbook(asset_xlsx)
     ws = wb["Holdings"]
 
     headers = {str(ws.cell(1, c).value).strip().lower(): c for c in range(1, ws.max_column + 1) if ws.cell(1, c).value}
@@ -147,7 +148,7 @@ def apply_to_assets(
         ws.cell(nr, qty_col).value = qty
         changed.append(f"{sym}: new -> {qty}")
 
-    wb.save(ASSET_XLSX)
+    wb.save(asset_xlsx)
     return {"changed": changed, "changed_count": len(changed), "timestamp": now}
 
 
@@ -180,4 +181,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

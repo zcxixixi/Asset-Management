@@ -10,10 +10,10 @@ from datetime import datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-INPUT_PATH = REPO_ROOT / "assets.xlsx"
-PUBLIC_OUTPUT_PATH = REPO_ROOT / "public" / "data.json"
-BUNDLED_OUTPUT_PATH = REPO_ROOT / "src" / "data.json"
 SCRIPTS_EXTRACT_DATA = REPO_ROOT / "scripts" / "extract_data.py"
+
+sys.path.append(str(REPO_ROOT / "scripts"))
+from pipeline_state import data_output_paths, resolve_workbook_path
 
 
 def fail(message: str) -> None:
@@ -40,13 +40,16 @@ def run_extract_data() -> None:
 
 
 def validate_payload() -> None:
-    assert_true(INPUT_PATH.exists(), "assets.xlsx is missing")
-    assert_true(PUBLIC_OUTPUT_PATH.exists(), "public/data.json was not generated")
-    assert_true(BUNDLED_OUTPUT_PATH.exists(), "src/data.json was not generated")
+    input_path = resolve_workbook_path()
+    bundled_output_path, public_output_path = data_output_paths()
 
-    with PUBLIC_OUTPUT_PATH.open("r", encoding="utf-8") as f:
+    assert_true(input_path.exists(), f"{input_path.name} is missing")
+    assert_true(public_output_path.exists(), f"{public_output_path.name} was not generated")
+    assert_true(bundled_output_path.exists(), f"{bundled_output_path.name} was not generated")
+
+    with public_output_path.open("r", encoding="utf-8") as f:
         payload = json.load(f)
-    with BUNDLED_OUTPUT_PATH.open("r", encoding="utf-8") as f:
+    with bundled_output_path.open("r", encoding="utf-8") as f:
         bundled_payload = json.load(f)
 
     assert_true(

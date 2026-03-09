@@ -7,6 +7,7 @@ export const bundledDashboardData = bundledData as LiveDashboardPayload;
 export const LIVE_POLL_INTERVAL_MS = 60_000;
 
 const DATA_CACHE_KEY = 'dashboard_data_cache';
+const LOCAL_DATA_CACHE_KEY = 'dashboard_data_cache_local';
 
 interface DataCache {
   etag?: string;
@@ -33,6 +34,14 @@ function setCacheData(cache: DataCache): void {
   }
 }
 
+function setCacheDataForKey(key: string, cache: DataCache): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(cache));
+  } catch {
+    // Ignore localStorage failures and continue with network fetches.
+  }
+}
+
 function getPayloadVersion(payload: LiveDashboardPayload): string {
   const lastUpdated = payload.last_updated;
   if (typeof lastUpdated === 'string' && lastUpdated.length > 0) {
@@ -50,45 +59,57 @@ export function hasLivePayloadChanged(
 }
 
 export async function fetchLiveDashboardData(): Promise<LiveDashboardPayload> {
-  const liveUrl = `${import.meta.env.BASE_URL}data.json`;
+  const candidates = [
+    { url: `${import.meta.env.BASE_URL}data.local.json`, cacheKey: LOCAL_DATA_CACHE_KEY },
+    { url: `${import.meta.env.BASE_URL}data.json`, cacheKey: DATA_CACHE_KEY },
+  ];
 
-  const cached = getCachedData();
-  const headers: Record<string, string> = {};
+  for (const candidate of candidates) {
+    const cached = candidate.cacheKey === DATA_CACHE_KEY ? getCachedData() : (() => {
+      try {
+        const raw = localStorage.getItem(candidate.cacheKey);
+        return raw ? (JSON.parse(raw) as DataCache) : null;
+      } catch {
+        return null;
+      }
+    })();
+    const headers: Record<string, string> = {};
 
-  if (cached?.etag) {
-    headers['If-None-Match'] = cached.etag;
+    if (cached?.etag) {
+      headers['If-None-Match'] = cached.etag;
+    }
+    if (cached?.lastModified) {
+      headers['If-Modified-Since'] = cached.lastModified;
+    }
+
+    const response = await fetch(candidate.url, {
+      cache: 'no-store',
+      headers,
+    });
+
+    if (response.status === 304 && cached?.data) {
+      return cached.data;
+    }
+    if (!response.ok) {
+      continue;
+    }
+
+    const parsed = (await response.json()) as unknown;
+    if (!parsed || typeof parsed !== 'object') {
+      throw new Error('Live data payload is not an object');
+    }
+
+    const newCache: DataCache = {
+      etag: response.headers.get('etag') || undefined,
+      lastModified: response.headers.get('last-modified') || undefined,
+      data: parsed as LiveDashboardPayload,
+      timestamp: Date.now(),
+    };
+    setCacheDataForKey(candidate.cacheKey, newCache);
+    return parsed as LiveDashboardPayload;
   }
-  if (cached?.lastModified) {
-    headers['If-Modified-Since'] = cached.lastModified;
-  }
 
-  const response = await fetch(liveUrl, {
-    cache: 'no-store',
-    headers,
-  });
-
-  if (response.status === 304 && cached?.data) {
-    return cached.data;
-  }
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch live data: ${response.status}`);
-  }
-
-  const parsed = (await response.json()) as unknown;
-  if (!parsed || typeof parsed !== 'object') {
-    throw new Error('Live data payload is not an object');
-  }
-
-  const newCache: DataCache = {
-    etag: response.headers.get('etag') || undefined,
-    lastModified: response.headers.get('last-modified') || undefined,
-    data: parsed as LiveDashboardPayload,
-    timestamp: Date.now(),
-  };
-  setCacheData(newCache);
-
-  return parsed as LiveDashboardPayload;
+  throw new Error('Failed to fetch live data');
 }
 
 interface UseLiveDashboardDataOptions {

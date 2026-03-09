@@ -9,7 +9,7 @@ nanobot cron (command job) → scripts/asset_pipeline.py run-cycle
                                    ↓
                           update-data → analyze-portfolio → send-briefing → publish-data
                                    ↓
-                  assets.xlsx → scripts/extract_data.py → src/public data.json → Dashboard
+                  assets.xlsx (demo) / assets.local.xlsx (private) → scripts/extract_data.py → data.json or data.local.json → Dashboard
                                    ↓
               scripts/news_collector.py → scripts/briefing_agent.py → scripts/telegram_bot.py
 ```
@@ -27,7 +27,8 @@ Scheduling is deterministic; investment analysis stays agentic.
 | `scripts/telegram_bot.py` | Formats broadcasts and sends Telegram alerts/messages |
 | `scripts/advisor_contract.py` | Pydantic schema + fallback for `advisor_briefing` |
 | `scripts/workbook_sync.py` | Excel read/write + daily row sync |
-| `assets.xlsx` | Your portfolio (single source of truth) |
+| `assets.xlsx` | Sanitized demo workbook for the public repo |
+| `assets.local.xlsx` | Private local workbook override (gitignored) |
 
 ## Run Manually
 
@@ -56,6 +57,13 @@ python3 scripts/asset_pipeline.py run-cycle --time-of-day morning --send-telegra
 `run_briefing.sh` remains as a thin compatibility wrapper, but scheduled runs now call the Python CLI directly. `run-cycle` refreshes portfolio data, runs the dedicated nanobot analysis agent, sends the Telegram briefing, and when `--publish` is enabled it commits only `assets.xlsx`, `src/data.json`, and `public/data.json` to `main`.
 
 The frontend polls `data.json` every 60 seconds while the page is visible. Open tabs automatically pick up new `last_updated` payloads after the published JSON changes on GitHub Pages.
+
+## Privacy Mode
+
+- Public GitHub Pages uses tracked demo files: `assets.xlsx`, `src/data.json`, `public/data.json`.
+- Local private portfolio data should live in gitignored files: `assets.local.xlsx`, `src/data.local.json`, `public/data.local.json`.
+- The scripts automatically prefer `assets.local.xlsx` when it exists.
+- The UI automatically prefers `data.local.json` when it exists, and falls back to the public demo `data.json`.
 
 ## Dev Server
 

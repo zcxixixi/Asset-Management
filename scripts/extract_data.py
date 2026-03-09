@@ -10,7 +10,6 @@ Real-Time Asset Synchronization Script
 
 from __future__ import annotations
 
-import os
 import sys
 from datetime import datetime, timezone
 from typing import Any, Dict, List
@@ -21,7 +20,7 @@ import yfinance as yf
 from workbook_sync import WorkbookSyncError, normalize_date_str, sync_workbook
 from news_collector import get_portfolio_context
 from advisor_contract import generate_fallback
-from pipeline_state import write_analysis_context, write_data_outputs
+from pipeline_state import resolve_workbook_path, write_analysis_context, write_data_outputs
 
 try:
     from dotenv import load_dotenv
@@ -29,7 +28,6 @@ try:
 except ImportError:
     pass
 
-INPUT_PATH = "assets.xlsx"
 REQUIRED_HOLDINGS_COLUMNS = {"symbol", "name", "quantity"}
 REQUIRED_DAILY_COLUMNS = {"date", "cash_usd", "gold_usd", "stocks_usd", "total_usd", "nav", "note"}
 MAX_NEWS_ITEMS = 8
@@ -156,8 +154,7 @@ def get_realtime_price(symbol: str, mock_date: datetime | None = None, fallback_
 
 
 def write_json_outputs(payload: Dict[str, Any]) -> None:
-    write_data_outputs(payload)
-    for path in ("src/data.json", "public/data.json"):
+    for path in write_data_outputs(payload):
         print(f"Updated {path}")
 
 
@@ -477,15 +474,16 @@ def _map_context_item_to_daily_news(item: Dict[str, Any]) -> Dict[str, str]:
 
 
 def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
-    if not os.path.exists(INPUT_PATH):
-        raise FileNotFoundError(f"{INPUT_PATH} not found in repository root")
+    input_path = resolve_workbook_path()
+    if not input_path.exists():
+        raise FileNotFoundError(f"{input_path} not found")
         
     sync_now = datetime.now()
     if mock_date_str:
         sync_now = datetime.strptime(mock_date_str, "%Y-%m-%d")
 
     print("Reading local Excel Holdings (Broker Export Format)...")
-    df_holdings = pd.read_excel(INPUT_PATH, sheet_name="Holdings")
+    df_holdings = pd.read_excel(input_path, sheet_name="Holdings")
     df_holdings = df_holdings.dropna(how="all")
     df_holdings.columns = [str(c).strip().lower() for c in df_holdings.columns]
 
@@ -571,7 +569,7 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
             print("Skipping workbook sync for historical simulation.")
         else:
             meta = sync_workbook(
-                workbook_path=INPUT_PATH,
+                workbook_path=input_path,
                 sync_dt=sync_now,
                 holding_updates=holding_updates,
                 assets_grouped=assets_grouped,
@@ -584,7 +582,7 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
     except WorkbookSyncError as exc:
         raise RuntimeError(f"Workbook sync failed: {exc}") from exc
 
-    df_daily = pd.read_excel(INPUT_PATH, sheet_name="Daily")
+    df_daily = pd.read_excel(input_path, sheet_name="Daily")
     df_daily = df_daily.dropna(how="all", axis=1).dropna(how="all", axis=0)
     df_daily.columns = [str(c).strip().lower() for c in df_daily.columns]
     missing_daily_columns = REQUIRED_DAILY_COLUMNS - set(df_daily.columns)
@@ -666,7 +664,7 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
     write_json_outputs(response)
 
     print(
-        "\n✅ Pushed synchronized data to src/data.json, public/data.json. "
+        "\n✅ Pushed synchronized data to dashboard outputs. "
         f"Total NAV: ${total_balance:,.2f}"
     )
     return response

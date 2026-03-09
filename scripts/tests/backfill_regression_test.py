@@ -16,11 +16,10 @@ from datetime import date, timedelta
 import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from pipeline_state import data_output_paths, resolve_workbook_path
 from utils import safe_float
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-INPUT_PATH = REPO_ROOT / "assets.xlsx"
-OUTPUT_PATH = REPO_ROOT / "public" / "data.json"
 EXPECTED_DATES = ["2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27"]
 # Dynamic recent date check - validates that data is being updated
 RECENT_EXPECTED_DATE = (date.today() - timedelta(days=1)).isoformat()
@@ -34,9 +33,10 @@ def assert_true(condition: bool, message: str) -> None:
         fail(message)
 
 def validate_daily_sheet() -> None:
-    assert_true(INPUT_PATH.exists(), "assets.xlsx is missing")
+    input_path = resolve_workbook_path()
+    assert_true(input_path.exists(), f"{input_path.name} is missing")
 
-    df = pd.read_excel(INPUT_PATH, sheet_name="Daily")
+    df = pd.read_excel(input_path, sheet_name="Daily")
     df.columns = [str(c).strip().lower() for c in df.columns]
     required_columns = {"date", "cash_usd", "gold_usd", "stocks_usd", "total_usd", "nav"}
     missing = required_columns - set(df.columns)
@@ -56,9 +56,10 @@ def validate_daily_sheet() -> None:
         assert_true(row.nav > 0, f"nav must be positive on {row.date}")
 
 def validate_chart_data() -> None:
-    assert_true(OUTPUT_PATH.exists(), "public/data.json is missing")
+    output_path = data_output_paths()[1]
+    assert_true(output_path.exists(), f"{output_path.name} is missing")
 
-    with OUTPUT_PATH.open("r", encoding="utf-8") as f:
+    with output_path.open("r", encoding="utf-8") as f:
         payload = json.load(f)
 
     chart_data = payload.get("chart_data")
