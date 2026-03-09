@@ -378,7 +378,7 @@ export default function AssetDashboard({
                   <Sparkles className="text-slate-600 group-hover:text-blue-500 transition-colors" size={14} strokeWidth={2.5} />
                 </div>
                 <h2 className="text-slate-800 text-sm font-medium tracking-tight">
-                  OpenClaw Assistant
+                  nanobot Assistant
                 </h2>
               </div>
               <div className="flex items-center space-x-3">

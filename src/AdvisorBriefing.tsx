@@ -323,7 +323,7 @@ export default function AdvisorBriefing({ payload: propPayload, onBack, isPrivac
             <Sparkles className="text-blue-600" size={18} strokeWidth={2} />
           </div>
           <div>
-            <h2 className="text-xs uppercase tracking-[0.2em] font-bold text-slate-500">OpenClaw Intelligence</h2>
+            <h2 className="text-xs uppercase tracking-[0.2em] font-bold text-slate-500">nanobot Intelligence</h2>
             <p className="text-[11px] text-slate-400 font-medium tracking-wider font-mono mt-0.5">PUB: {publishAt} | SRC: {sourceLabel}</p>
           </div>
         </motion.div>
