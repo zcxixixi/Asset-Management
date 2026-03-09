@@ -10,6 +10,7 @@ export interface NewsItem {
     published_at: string;
     url: string;
     summary: string;
+    channel?: string;
 }
 
 interface NewsFeedProps {
@@ -79,6 +80,14 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ newsItems, onBack, isPrivacyMode })
                                         <span className="flex items-center gap-1.5 uppercase tracking-wider">
                                             {p(item.publisher)}
                                         </span>
+                                        {item.channel && (
+                                            <>
+                                                <span className="w-1 h-1 rounded-full bg-[#D1D1D6]" />
+                                                <span className="flex items-center gap-1.5 uppercase tracking-wider">
+                                                    {p(item.channel)}
+                                                </span>
+                                            </>
+                                        )}
                                         <span className="w-1 h-1 rounded-full bg-[#D1D1D6]" />
                                         <span className="flex items-center gap-1.5">
                                             <Calendar size={12} />

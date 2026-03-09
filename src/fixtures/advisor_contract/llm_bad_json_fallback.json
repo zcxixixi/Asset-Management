@@ -2,11 +2,38 @@
     "generated_at": "2026-03-01T12:00:00Z",
     "source": "AdvisorAgent_Fallback",
     "headline": "Portfolio Sync Complete (Advisor Analysis Unavailable)",
-    "macro_summary": "The automated advisory service is currently unavailable. Portfolio holdings have been synced successfully based on the latest market data.",
+    "macro_summary": "Primary advisory analysis was unavailable, so the system produced a conservative portfolio-manager fallback based on current allocation and the latest synced holdings.",
     "verdict": "NEUTRAL",
-    "suggestions": [],
+    "portfolio_overlay": {
+        "stance": "BALANCED",
+        "thesis": "Maintain core exposure, preserve liquidity, and wait for higher-conviction signals before changing risk materially.",
+        "rebalancing_watch": "Reassess if a single risk asset becomes dominant or macro data materially shifts rates expectations."
+    },
+    "macro_themes": [
+        {
+            "theme": "Rates and liquidity",
+            "implication": "Avoid chasing duration-sensitive growth until policy and yields stabilize."
+        },
+        {
+            "theme": "Concentration discipline",
+            "implication": "Keep single-name risk sized so one earnings cycle cannot define portfolio outcomes."
+        }
+    ],
+    "suggestions": [
+        {
+            "asset": "PORTFOLIO",
+            "action": "HOLD",
+            "rationale": "Default to capital preservation when the primary advisory layer is unavailable.",
+            "thesis": "The synced portfolio should remain steady until higher-confidence evidence is available.",
+            "catalyst": "Wait for fresh macro releases, earnings, or validated company-specific developments.",
+            "risk": "Reacting without verified context can degrade entry quality and increase churn.",
+            "horizon": "SHORT",
+            "confidence": "LOW"
+        }
+    ],
     "risks": [
-        "Advisory service timeout or validation failure."
+        "Advisory service timeout or schema validation failure.",
+        "Fallback guidance is intentionally conservative and may miss fast-moving catalysts."
     ],
     "news_context": [],
     "global_context": [],

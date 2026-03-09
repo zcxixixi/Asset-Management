@@ -438,8 +438,12 @@ def briefing_to_insights(briefing: Dict[str, Any]) -> List[Dict[str, str]]:
         asset = normalize_asset_label(item.get("asset") or "Portfolio")
         action = str(item.get("action") or "").strip()
         rationale = str(item.get("rationale") or "").strip()
-        if rationale:
-            insights.append({"type": suggestion_to_insight_type(action), "asset": asset, "text": rationale})
+        thesis = str(item.get("thesis") or "").strip()
+        text = rationale
+        if thesis:
+            text = f"{rationale} Thesis: {thesis}" if rationale else thesis
+        if text:
+            insights.append({"type": suggestion_to_insight_type(action), "asset": asset, "text": text})
 
     if not insights:
         insights = [
@@ -450,6 +454,26 @@ def briefing_to_insights(briefing: Dict[str, Any]) -> List[Dict[str, str]]:
             }
         ]
     return insights
+
+
+def _news_sort_key(item: Dict[str, Any]) -> tuple[float, pd.Timestamp]:
+    relevance = float(item.get("relevance_score") or 0.0)
+    timestamp = pd.to_datetime(item.get("timestamp", ""), utc=True, errors="coerce")
+    if pd.isna(timestamp):
+        timestamp = pd.Timestamp(0, tz="UTC")
+    return (relevance, timestamp)
+
+
+def _map_context_item_to_daily_news(item: Dict[str, Any]) -> Dict[str, str]:
+    return {
+        "symbol": str(item.get("symbol") or "MACRO"),
+        "title": str(item.get("headline") or "Untitled"),
+        "publisher": str(item.get("source") or "Unknown"),
+        "published_at": str(item.get("timestamp") or ""),
+        "url": str(item.get("url") or "#"),
+        "summary": str(item.get("summary") or ""),
+        "channel": str(item.get("channel") or "market-news"),
+    }
 
 
 def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
@@ -599,24 +623,23 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
         context_result = get_portfolio_context(tracked_symbols)
         news_context_list = context_result.get("news_context", [])
         global_context_list = context_result.get("global_context", [])
+        thin_context = bool(context_result.get("thin_context", False))
+        thin_context_reasons = context_result.get("thin_context_reasons", [])
         print(f"Collected {len(news_context_list)} portfolio news items and {len(global_context_list)} global news items.")
+    if mock_date_str:
+        thin_context = False
+        thin_context_reasons = []
 
     advisor_briefing = generate_fallback()
 
     insights = briefing_to_insights(advisor_briefing)
 
-    mapped_news = []
-    for item in global_context_list:
-        # news_collector returns NewsItem objects or dicts with 'headline', 'source', 'timestamp'
-        data = item.model_dump() if hasattr(item, "model_dump") else item
-        mapped_news.append({
-            "symbol": data.get("symbol", "MACRO"),
-            "title": data.get("headline", "Untitled"),
-            "publisher": data.get("source", "Unknown"),
-            "published_at": data.get("timestamp", ""),
-            "url": data.get("url", "#"),
-            "summary": data.get("summary", "")
-        })
+    merged_news_context = list(news_context_list) + list(global_context_list)
+    merged_news_context.sort(key=_news_sort_key, reverse=True)
+    mapped_news = [
+        _map_context_item_to_daily_news(item.model_dump() if hasattr(item, "model_dump") else item)
+        for item in merged_news_context[:8]
+    ]
 
     response = {
         "assets": final_assets,
@@ -636,6 +659,8 @@ def extract_data(mock_date_str: str = None) -> Dict[str, Any]:
             "holdings": live_holdings,
             "news_context": news_context_list,
             "global_context": global_context_list,
+            "thin_context": thin_context,
+            "thin_context_reasons": thin_context_reasons,
         }
     )
     write_json_outputs(response)

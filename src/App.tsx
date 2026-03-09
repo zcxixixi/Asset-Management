@@ -18,11 +18,12 @@ function App() {
   const dailyNewsRaw = dashboardPayload.daily_news || [];
   const dailyNews: NewsItem[] = dailyNewsRaw.map((item: Partial<NewsItem>) => ({
     symbol: item.symbol || 'MACRO',
-    title: item.title || 'Untitled headline',
-    publisher: item.publisher || 'Unknown',
-    published_at: item.published_at || '',
+    title: item.title || (item as Partial<Record<'headline', string>>).headline || 'Untitled headline',
+    publisher: item.publisher || (item as Partial<Record<'source', string>>).source || 'Unknown',
+    published_at: item.published_at || (item as Partial<Record<'timestamp', string>>).timestamp || '',
     url: item.url || '#',
     summary: item.summary || '',
+    channel: item.channel || 'market-news',
   }));
 
   return (

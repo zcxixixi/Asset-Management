@@ -64,6 +64,18 @@ def format_message(time_of_day: str, data: dict) -> str:
     if summary:
         msg += f"📊 <b>Market Context:</b>\n{summary}\n\n"
 
+    overlay = briefing.get("portfolio_overlay", {})
+    if isinstance(overlay, dict) and overlay:
+        stance = str(overlay.get("stance") or "BALANCED")
+        thesis = str(overlay.get("thesis") or "").strip()
+        watch = str(overlay.get("rebalancing_watch") or "").strip()
+        msg += f"🧭 <b>Portfolio Overlay:</b> {stance}\n"
+        if thesis:
+            msg += f"{thesis}\n"
+        if watch:
+            msg += f"Watch: <i>{watch}</i>\n"
+        msg += "\n"
+
     # 5. Top Suggestions
     suggestions = briefing.get("suggestions", [])
     if suggestions:
@@ -72,7 +84,14 @@ def format_message(time_of_day: str, data: dict) -> str:
         for s in suggestions[:3]:
             action_emoji = "📈 BUY" if s["action"] == "BUY" else "📉 SELL" if s["action"] == "SELL" else "⏸️ HOLD"
             msg += f"• <b>{s['asset']}</b> ({action_emoji})\n"
-            msg += f"  <i>{s['rationale']}</i>\n"
+            rationale = str(s.get("rationale") or "").strip()
+            catalyst = str(s.get("catalyst") or "").strip()
+            risk = str(s.get("risk") or "").strip()
+            msg += f"  <i>{rationale}</i>\n"
+            if catalyst:
+                msg += f"  Catalyst: {catalyst}\n"
+            if risk:
+                msg += f"  Risk: {risk}\n"
         msg += "\n"
 
     # 6. Top Risks
@@ -92,7 +111,9 @@ def format_message(time_of_day: str, data: dict) -> str:
             title = n.get("title", "News")
             url = n["url"]
             source = n.get("publisher", "")
-            source_tag = f" ({source})" if source else ""
+            channel = n.get("channel", "")
+            channel_tag = f" [{channel}]" if channel else ""
+            source_tag = f" ({source}{channel_tag})" if source or channel else ""
             msg += f'• <a href="{url}">{title}</a>{source_tag}\n'
         msg += "\n"
 

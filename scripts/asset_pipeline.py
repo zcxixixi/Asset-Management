@@ -41,6 +41,8 @@ def analyze_portfolio(*, time_of_day: str) -> dict:
         news_context=context.get("news_context", []),
         global_context=context.get("global_context", []),
         time_of_day=time_of_day,
+        thin_context=bool(context.get("thin_context", False)),
+        thin_context_reasons=context.get("thin_context_reasons", []),
     )
     update_advisor_briefing(briefing)
     return briefing

@@ -4,16 +4,41 @@
     "headline": "Tech Sector Leads Rally as NVDA Reports Strong Earnings",
     "macro_summary": "The broader market is showing resilience despite inflation concerns. The tech sector, particularly AI-driven companies, continues to outperform. Energy markets remain steady, supporting Gold futures (GC=F).",
     "verdict": "BULLISH",
+    "portfolio_overlay": {
+        "stance": "OFFENSIVE",
+        "thesis": "Risk appetite remains constructive while AI leadership and easing macro pressure support staying pro-cyclical.",
+        "rebalancing_watch": "Trim only if AI leadership narrows sharply or rates reprice higher after macro data."
+    },
+    "macro_themes": [
+        {
+            "theme": "AI capital cycle",
+            "implication": "Leaders with proven monetization can keep compounding even if the broader market churns."
+        },
+        {
+            "theme": "Rates stability",
+            "implication": "A pause in rate pressure preserves support for long-duration growth assets."
+        }
+    ],
     "suggestions": [
         {
             "asset": "NVDA",
             "action": "HOLD",
-            "rationale": "Strong earnings report justifies current valuation; maintain position to capture further upside."
+            "rationale": "Strong earnings report justifies current valuation; maintain position to capture further upside.",
+            "thesis": "NVIDIA remains the clearest picks-and-shovels beneficiary of enterprise AI spend.",
+            "catalyst": "Follow-through from hyperscaler capex guidance and sustained inference demand.",
+            "risk": "Any slowdown in AI capex or margin compression would challenge the premium multiple.",
+            "horizon": "MEDIUM",
+            "confidence": "HIGH"
         },
         {
             "asset": "TSLA",
             "action": "BUY",
-            "rationale": "Recent dip presents a buying opportunity amid new product announcements."
+            "rationale": "Recent dip presents a buying opportunity amid new product announcements.",
+            "thesis": "Sentiment is weak relative to the long-duration autonomy and energy optionality.",
+            "catalyst": "Execution on software, robotaxi narrative, or margin stabilization could rerate the stock.",
+            "risk": "Execution misses and pricing pressure can overwhelm the long-term thesis.",
+            "horizon": "LONG",
+            "confidence": "MEDIUM"
         }
     ],
     "risks": [
@@ -25,6 +50,7 @@
             "headline": "Nvidia crushes Q4 estimates",
             "source": "CNBC",
             "timestamp": "2026-03-01T08:30:00Z",
+            "channel": "market-news",
             "relevance_score": 0.95
         }
     ],
@@ -33,6 +59,7 @@
             "headline": "Federal Reserve signals potential pause in rate hikes",
             "source": "Reuters",
             "timestamp": "2026-02-28T14:00:00Z",
+            "channel": "official-macro",
             "relevance_score": 0.8
         }
     ],

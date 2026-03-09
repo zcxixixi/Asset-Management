@@ -4,11 +4,27 @@
     "headline": "Quiet Market Day, No Major Action Required",
     "macro_summary": "Market volatility is exceptionally low today with no major economic events or breaking news affecting the core holdings.",
     "verdict": "NEUTRAL",
+    "portfolio_overlay": {
+        "stance": "BALANCED",
+        "thesis": "No strong catalyst is present, so preserve optionality and let position sizing do the risk management.",
+        "rebalancing_watch": "Only revisit allocations if one sleeve drifts materially beyond target weight."
+    },
+    "macro_themes": [
+        {
+            "theme": "Low-volatility tape",
+            "implication": "Avoid forcing trades when there is no differentiated catalyst."
+        }
+    ],
     "suggestions": [
         {
             "asset": "PORTFOLIO",
             "action": "HOLD",
-            "rationale": "No significant market drivers present. Maintain current allocations."
+            "rationale": "No significant market drivers present. Maintain current allocations.",
+            "thesis": "Capital preservation and patience are preferable to low-conviction repositioning.",
+            "catalyst": "Fresh earnings, macro releases, or credible company-specific news.",
+            "risk": "Low-volatility markets can hide latent concentration risk.",
+            "horizon": "SHORT",
+            "confidence": "MEDIUM"
         }
     ],
     "risks": [

@@ -41,6 +41,12 @@ class TestAdvisorContract(unittest.TestCase):
         data['verdict'] = "UNCERTAIN" # Invalid enum, should be BULLISH, BEARISH, or NEUTRAL
         is_valid = validate_payload(data)
         self.assertFalse(is_valid, "Payload with invalid verdict enum should fail validation.")
+
+    def test_missing_nested_required_field(self):
+        data = self.load_fixture('normal.json')
+        del data["portfolio_overlay"]["stance"]
+        is_valid = validate_payload(data)
+        self.assertFalse(is_valid, "Payload missing portfolio_overlay.stance should fail validation.")
         
     def test_fallback_schema_compliance(self):
         """Test that the deterministic fallback generator creates a payload that strictly adheres to the schema."""
@@ -54,6 +60,7 @@ class TestAdvisorContract(unittest.TestCase):
         # We can't strictly compare generated_at since it's dynamic, but we can compare the rest
         self.assertEqual(fallback_data['source'], fallback_fixture['source'])
         self.assertEqual(fallback_data['verdict'], fallback_fixture['verdict'])
+        self.assertEqual(fallback_data['portfolio_overlay']['stance'], fallback_fixture['portfolio_overlay']['stance'])
 
 if __name__ == '__main__':
     unittest.main()

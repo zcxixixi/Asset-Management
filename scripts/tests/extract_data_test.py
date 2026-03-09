@@ -98,10 +98,29 @@ def validate_payload() -> None:
 
     briefing = payload["advisor_briefing"]
     assert_true(isinstance(briefing, dict), "advisor_briefing must be an object")
-    for key in ["headline", "macro_summary", "verdict", "suggestions", "risks", "news_context", "source"]:
+    for key in [
+        "headline",
+        "macro_summary",
+        "verdict",
+        "portfolio_overlay",
+        "macro_themes",
+        "suggestions",
+        "risks",
+        "news_context",
+        "global_context",
+        "source",
+    ]:
         assert_true(key in briefing, f"advisor_briefing missing key: {key}")
     assert_true(isinstance(briefing["suggestions"], list), "advisor_briefing.suggestions must be a list")
     assert_true(isinstance(briefing["risks"], list), "advisor_briefing.risks must be a list")
+    assert_true(isinstance(briefing["macro_themes"], list), "advisor_briefing.macro_themes must be a list")
+    assert_true(isinstance(briefing["portfolio_overlay"], dict), "advisor_briefing.portfolio_overlay must be an object")
+
+    daily_news = payload.get("daily_news", [])
+    assert_true(isinstance(daily_news, list), "daily_news must be a list")
+    for item in daily_news[:3]:
+        for key in ["title", "publisher", "published_at", "channel"]:
+            assert_true(key in item, f"daily_news item missing key: {key}")
 
 
 if __name__ == "__main__":

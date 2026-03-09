@@ -16,14 +16,17 @@ if str(NANOBOT_ROOT) not in sys.path:
 ANALYSIS_WORKSPACE = Path(__file__).resolve().parent / "analysis_agent_workspace"
 
 USER_PROMPT_TEMPLATE = """
-You are preparing the structured advisor briefing for the current portfolio cycle.
+You are preparing a structured institutional-quality portfolio manager briefing for the current portfolio cycle.
 
 Rules:
 - Return only valid JSON matching the schema below.
+- Keep the tone concise, professional, and evidence-based.
+- Use first-principles reasoning: connect macro regime -> asset-specific thesis -> action.
 - Give one suggestion per holding, ordered by portfolio weight descending.
+- Every suggestion must include asymmetric risk/reward framing through thesis, catalyst, and risk.
 - Tie each rationale to a concrete news item when possible.
-- You may use web_search and web_fetch if the supplied context is stale or incomplete.
-- Do not invent price targets or unsupported numbers.
+- Do not invent price targets, valuation figures, or unsupported numbers.
+- Use web_search and web_fetch only if thin_context is true. If context is already sufficient, do not browse.
 
 Required JSON schema:
 {{
@@ -32,11 +35,27 @@ Required JSON schema:
   "headline": "string",
   "macro_summary": "string",
   "verdict": "BULLISH | BEARISH | NEUTRAL",
+  "portfolio_overlay": {{
+    "stance": "OFFENSIVE | BALANCED | DEFENSIVE",
+    "thesis": "string",
+    "rebalancing_watch": "string"
+  }},
+  "macro_themes": [
+    {{
+      "theme": "string",
+      "implication": "string"
+    }}
+  ],
   "suggestions": [
     {{
       "asset": "ticker symbol string",
       "action": "BUY | SELL | HOLD",
-      "rationale": "string"
+      "rationale": "string",
+      "thesis": "string",
+      "catalyst": "string",
+      "risk": "string",
+      "horizon": "SHORT | MEDIUM | LONG",
+      "confidence": "LOW | MEDIUM | HIGH"
     }}
   ],
   "risks": ["string"],
@@ -45,6 +64,10 @@ Required JSON schema:
       "headline": "string",
       "source": "string",
       "timestamp": "string",
+      "channel": "string",
+      "url": "string (optional)",
+      "symbol": "string (optional)",
+      "summary": "string (optional)",
       "relevance_score": "number (optional)"
     }}
   ],
@@ -53,6 +76,10 @@ Required JSON schema:
       "headline": "string",
       "source": "string",
       "timestamp": "string",
+      "channel": "string",
+      "url": "string (optional)",
+      "symbol": "string (optional)",
+      "summary": "string (optional)",
       "relevance_score": "number (optional)"
     }}
   ],
@@ -61,6 +88,8 @@ Required JSON schema:
 
 Time of day: {time_of_day}
 Current UTC time: {generated_at}
+thin_context: {thin_context}
+thin_context_reasons: {thin_context_reasons}
 
 Portfolio package:
 {payload}
@@ -103,6 +132,54 @@ def _strip_json_fences(text: str) -> str:
     return stripped.strip()
 
 
+def _portfolio_overlay_for_holdings(ordered_holdings: list[dict[str, Any]]) -> dict[str, str]:
+    top_weight = float(ordered_holdings[0].get("portfolio_weight_pct") or 0) if ordered_holdings else 0.0
+    if top_weight >= 45:
+        stance = "DEFENSIVE"
+        thesis = "Concentration is elevated, so preserve optionality and avoid increasing gross risk until diversification improves."
+        watch = "Reduce exposure if the largest position becomes the dominant driver of weekly PnL."
+    elif top_weight >= 25:
+        stance = "BALANCED"
+        thesis = "Core exposures are meaningful but still manageable, so keep risk balanced between conviction and liquidity."
+        watch = "Rebalance if the leading position outruns the rest of the book after a catalyst."
+    else:
+        stance = "OFFENSIVE"
+        thesis = "Concentration is controlled, which supports selective risk-taking when catalysts and macro conditions align."
+        watch = "Deploy cash only into names with improving catalyst quality, not just price weakness."
+    return {
+        "stance": stance,
+        "thesis": thesis,
+        "rebalancing_watch": watch,
+    }
+
+
+def _macro_themes_for_context(global_context: list[dict[str, Any]]) -> list[dict[str, str]]:
+    themes: list[dict[str, str]] = []
+    headlines = " ".join(str(item.get("headline") or "") for item in global_context).upper()
+
+    if any(token in headlines for token in ("RATE", "FED", "INFLATION", "YIELD", "TREASURY")):
+        themes.append(
+            {
+                "theme": "Rates and liquidity",
+                "implication": "Duration-sensitive assets should be sized against the direction of yields rather than pure narrative momentum.",
+            }
+        )
+    if any(token in headlines for token in ("LABOR", "EMPLOYMENT", "PAYROLL", "CPI", "PPI")):
+        themes.append(
+            {
+                "theme": "Macro data sensitivity",
+                "implication": "Near-term entries should leave room for volatility around official data releases.",
+            }
+        )
+    themes.append(
+        {
+            "theme": "Concentration discipline",
+            "implication": "The portfolio should only add risk where catalysts are specific and downside is identifiable.",
+        }
+    )
+    return themes[:3]
+
+
 def _generate_local_briefing(
     *,
     holdings: list[dict[str, Any]] | list[Any],
@@ -112,6 +189,10 @@ def _generate_local_briefing(
     failure_reason: str,
 ) -> dict[str, Any]:
     ordered_holdings = _enrich_holdings(holdings if isinstance(holdings, list) else [])
+    if not ordered_holdings:
+        fallback = generate_fallback()
+        fallback["generated_at"] = generated_at
+        return fallback
 
     suggestions: list[dict[str, str]] = []
     for item in ordered_holdings:
@@ -120,39 +201,56 @@ def _generate_local_briefing(
             continue
         weight = float(item.get("portfolio_weight_pct") or 0)
 
-        action = "HOLD"
-        rationale = "Maintain current allocation while monitoring incoming market data."
-        if weight >= 40:
-            rationale = "Position is highly concentrated; avoid adding and monitor concentration risk."
-        elif weight <= 8:
-            rationale = "Position is relatively small; keep under observation for conviction and liquidity."
-        elif 20 <= weight < 40:
-            rationale = "Core allocation size is meaningful; keep exposure stable unless trend changes materially."
+        rationale = "Maintain the current line while waiting for higher-confidence catalysts."
+        thesis = "The position remains investable, but current evidence favors disciplined sizing over aggressive change."
+        catalyst = "Watch for earnings, official company updates, or macro conditions that improve the payoff asymmetry."
+        risk = "Position-level drawdown risk increases if new information fails to confirm the current thesis."
+        horizon = "MEDIUM"
+        confidence = "MEDIUM"
+
+        if weight >= 35:
+            rationale = "The position is already large enough that risk management matters more than pressing the trade."
+            thesis = "A concentrated winner should earn the right to stay large through durable execution, not just narrative strength."
+            catalyst = "Sustained operating momentum or official company disclosures that reinforce the existing thesis."
+            risk = "Any earnings or policy disappointment can hit portfolio-level PnL disproportionally."
+            horizon = "SHORT"
+            confidence = "HIGH"
+        elif weight <= 10:
+            rationale = "The position is small, so there is no need to force action before conviction improves."
+            thesis = "Smaller lines should graduate through evidence, not through averaging into uncertainty."
+            catalyst = "A clearer earnings, macro, or company-specific trigger that improves expected payoff."
+            risk = "Low-conviction averaging can turn a watchlist position into clutter."
+            horizon = "LONG"
+            confidence = "MEDIUM"
 
         suggestions.append(
             {
                 "asset": symbol,
-                "action": action,
+                "action": "HOLD",
                 "rationale": rationale,
+                "thesis": thesis,
+                "catalyst": catalyst,
+                "risk": risk,
+                "horizon": horizon,
+                "confidence": confidence,
             }
         )
-
-    if not suggestions:
-        return generate_fallback()
-
-    news_list = [item for item in news_context if isinstance(item, dict)]
-    global_list = [item for item in global_context if isinstance(item, dict)]
 
     return {
         "generated_at": generated_at,
         "source": "AdvisorAgent_LocalFallback",
-        "headline": "Portfolio Sync Complete (Local Advisory Fallback)",
-        "macro_summary": "Automated local advisor generated risk-aware HOLD guidance while upstream AI analysis was unavailable.",
+        "headline": "Portfolio Sync Complete (Local PM Fallback)",
+        "macro_summary": "The local advisory fallback kept the portfolio in review mode while the upstream research agent was unavailable.",
         "verdict": "NEUTRAL",
+        "portfolio_overlay": _portfolio_overlay_for_holdings(ordered_holdings),
+        "macro_themes": _macro_themes_for_context([item for item in global_context if isinstance(item, dict)]),
         "suggestions": suggestions,
-        "risks": [f"Primary advisor unavailable: {failure_reason}"],
-        "news_context": news_list,
-        "global_context": global_list,
+        "risks": [
+            f"Primary advisor unavailable: {failure_reason}",
+            "Fallback output is intentionally conservative and may underreact to fresh catalysts.",
+        ],
+        "news_context": [item for item in news_context if isinstance(item, dict)],
+        "global_context": [item for item in global_context if isinstance(item, dict)],
         "disclaimer": "This briefing is auto-generated for informational purposes only and does not constitute financial advice.",
     }
 
@@ -205,11 +303,15 @@ def generate_briefing(
     global_context: list,
     *,
     time_of_day: str = "morning",
+    thin_context: bool = False,
+    thin_context_reasons: list[str] | None = None,
 ) -> dict:
     generated_at = datetime.now(timezone.utc).isoformat()
     safe_holdings = holdings if isinstance(holdings, list) else []
     safe_news_context = news_context if isinstance(news_context, list) else []
     safe_global_context = global_context if isinstance(global_context, list) else []
+    safe_reasons = thin_context_reasons if isinstance(thin_context_reasons, list) else []
+
     payload = {
         "portfolio_holdings": _enrich_holdings(safe_holdings),
         "portfolio_news": safe_news_context,
@@ -218,6 +320,8 @@ def generate_briefing(
     prompt = USER_PROMPT_TEMPLATE.format(
         time_of_day=time_of_day,
         generated_at=generated_at,
+        thin_context=str(bool(thin_context)).lower(),
+        thin_context_reasons=json.dumps(safe_reasons, ensure_ascii=False),
         payload=json.dumps(payload, ensure_ascii=False, indent=2),
     )
 
