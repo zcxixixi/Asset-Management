@@ -67,6 +67,7 @@ interface AdvisorSuggestion {
 }
 
 interface AdvisorBriefingData {
+  source?: string;
   headline?: string;
   macro_summary?: string;
   verdict?: string;
@@ -122,6 +123,12 @@ function buildDashboardData(rawData: RawDashboardData): DashboardData {
   };
 }
 
+function isFallbackAdvisorBriefing(briefing?: AdvisorBriefingData): boolean {
+  const source = String(briefing?.source || '').toLowerCase();
+  const headline = String(briefing?.headline || '').toLowerCase();
+  return source.includes('fallback') || headline.includes('analysis unavailable');
+}
+
 interface AssetDashboardProps {
   rawData?: RawDashboardData;
   onOpenAdvisor?: () => void;
@@ -146,11 +153,18 @@ export default function AssetDashboard({
 
   const dashboardData = useMemo(() => buildDashboardData(rawData), [rawData]);
   const advisorBriefing = rawData.advisor_briefing;
-  const advisorHeadline = advisorBriefing?.headline ?? 'Portfolio Pulse: Balanced but Event-Sensitive';
-  const advisorSummary =
-    advisorBriefing?.macro_summary ??
-    'No live AI briefing available yet. Keep diversified allocation and rebalance with discipline.';
-  const advisorSuggestion = advisorBriefing?.suggestions?.[0];
+  const fallbackAdvisorHeadline = 'Portfolio Pulse: Balanced but Event-Sensitive';
+  const fallbackAdvisorSummary =
+    'This public demo uses a sanitized portfolio snapshot. Keep diversified allocation and rebalance with discipline.';
+  const advisorHeadline = isFallbackAdvisorBriefing(advisorBriefing)
+    ? fallbackAdvisorHeadline
+    : advisorBriefing?.headline ?? fallbackAdvisorHeadline;
+  const advisorSummary = isFallbackAdvisorBriefing(advisorBriefing)
+    ? fallbackAdvisorSummary
+    : advisorBriefing?.macro_summary ?? fallbackAdvisorSummary;
+  const advisorSuggestion = isFallbackAdvisorBriefing(advisorBriefing)
+    ? { asset: 'Portfolio', action: 'HOLD' }
+    : advisorBriefing?.suggestions?.[0];
 
   const filteredChartData = useMemo(() => {
     const data = dashboardData.chart_data;

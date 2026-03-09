@@ -203,34 +203,50 @@ const normalizeSuggestion = (item: RawSuggestion): NormalizedSuggestion => ({
   confidence: item.confidence || 'MEDIUM',
 });
 
-const normalizeBriefing = (report?: AdvisorBriefingData): NormalizedBriefingData => ({
-  generated_at: report?.generated_at || FALLBACK_REPORT.generated_at,
-  source: report?.source || FALLBACK_REPORT.source,
-  headline: report?.headline || FALLBACK_REPORT.headline,
-  macro_summary: report?.macro_summary || FALLBACK_REPORT.macro_summary,
-  verdict: report?.verdict || FALLBACK_REPORT.verdict,
-  portfolio_overlay: {
-    stance: report?.portfolio_overlay?.stance || FALLBACK_REPORT.portfolio_overlay.stance,
-    thesis: report?.portfolio_overlay?.thesis || FALLBACK_REPORT.portfolio_overlay.thesis,
-    rebalancing_watch:
-      report?.portfolio_overlay?.rebalancing_watch || FALLBACK_REPORT.portfolio_overlay.rebalancing_watch,
-  },
-  macro_themes:
-    report?.macro_themes && report.macro_themes.length > 0
-      ? report.macro_themes.map((theme) => ({
-          theme: theme.theme || 'Untitled theme',
-          implication: theme.implication || 'No implication provided.',
-        }))
-      : FALLBACK_REPORT.macro_themes,
-  suggestions:
-    report?.suggestions && report.suggestions.length > 0
-      ? report.suggestions.map(normalizeSuggestion)
-      : FALLBACK_REPORT.suggestions,
-  risks: report?.risks && report.risks.length > 0 ? report.risks : FALLBACK_REPORT.risks,
-  news_context: (report?.news_context || []).map(normalizeNewsItem),
-  global_context: (report?.global_context || []).map(normalizeNewsItem),
-  disclaimer: report?.disclaimer || FALLBACK_REPORT.disclaimer,
-});
+const isFallbackBriefing = (report?: AdvisorBriefingData): boolean => {
+  const source = String(report?.source || '').toLowerCase();
+  const headline = String(report?.headline || '').toLowerCase();
+  return source.includes('fallback') || headline.includes('analysis unavailable');
+};
+
+const normalizeBriefing = (report?: AdvisorBriefingData): NormalizedBriefingData => {
+  if (isFallbackBriefing(report)) {
+    return {
+      ...FALLBACK_REPORT,
+      generated_at: report?.generated_at || FALLBACK_REPORT.generated_at,
+      source: 'DemoAdvisor',
+    };
+  }
+
+  return {
+    generated_at: report?.generated_at || FALLBACK_REPORT.generated_at,
+    source: report?.source || FALLBACK_REPORT.source,
+    headline: report?.headline || FALLBACK_REPORT.headline,
+    macro_summary: report?.macro_summary || FALLBACK_REPORT.macro_summary,
+    verdict: report?.verdict || FALLBACK_REPORT.verdict,
+    portfolio_overlay: {
+      stance: report?.portfolio_overlay?.stance || FALLBACK_REPORT.portfolio_overlay.stance,
+      thesis: report?.portfolio_overlay?.thesis || FALLBACK_REPORT.portfolio_overlay.thesis,
+      rebalancing_watch:
+        report?.portfolio_overlay?.rebalancing_watch || FALLBACK_REPORT.portfolio_overlay.rebalancing_watch,
+    },
+    macro_themes:
+      report?.macro_themes && report.macro_themes.length > 0
+        ? report.macro_themes.map((theme) => ({
+            theme: theme.theme || 'Untitled theme',
+            implication: theme.implication || 'No implication provided.',
+          }))
+        : FALLBACK_REPORT.macro_themes,
+    suggestions:
+      report?.suggestions && report.suggestions.length > 0
+        ? report.suggestions.map(normalizeSuggestion)
+        : FALLBACK_REPORT.suggestions,
+    risks: report?.risks && report.risks.length > 0 ? report.risks : FALLBACK_REPORT.risks,
+    news_context: (report?.news_context || []).map(normalizeNewsItem),
+    global_context: (report?.global_context || []).map(normalizeNewsItem),
+    disclaimer: report?.disclaimer || FALLBACK_REPORT.disclaimer,
+  };
+};
 
 export default function AdvisorBriefing({ payload: propPayload, onBack, isPrivacyMode }: AdvisorBriefingProps) {
   const typedData = useLiveDashboardData(
